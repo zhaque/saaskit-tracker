@@ -1,0 +1,65 @@
+{% extends "main.html" %}
+
+{% block title %}{{request.muaccount}} : Publish Settings{% endblock %} 
+{% block body %}
+<div class="block">
+    <div class="hd"><h2>Edit Twitter Account</h2></div>
+    <div class="bd">
+    <form action="." method="POST">
+    <table>
+    <tr><td width="50%" style="font-weight: bold">Group Name:</td> <td><input type="text" name="grptxt"></td></tr>
+    <tr><td style="font-weight: bold">Group Description:</td> <td><input type="text" name="grpdesctxt"></td></tr>
+    <tr><td style="font-weight: bold">Username:</td> <td><input type="text" name="unametxt"></td></tr>
+    <tr><td style="font-weight: bold">Password:</td> <td><input type="text" name="pwdtxt"></td></tr>
+    <tr><td style="font-weight: bold">Active:</td> <td><input type="checkbox" name="activechk" checked="true"></td></tr>
+    <tr><td style="font-weight: bold">Filter:</td> <td><input type="text" name="filtertxt"></td></tr>
+    <tr><td colspan=2 style="font-size:smaller;">Only messages containing this phrase will be passed on to the twitter account. For multiple phrases, seperate them by a comma.</td></tr>
+    <tr><td style="font-weight: bold">Filter Replies:</td> <td><input type="checkbox" name="replieschk" checked="true"></td></tr>
+    <tr><td colspan=2 style="font-size:smaller;">Tick this box to filter @replies automatically.</td></tr>
+    <tr><td style="font-weight: bold">Minimum Datetime:</td> <td><input type="text" name="mindatetxt"></td></tr>
+    <tr><td colspan=2 style="font-size:smaller;">Do not smash tweets that occured before this date/time.</td></tr>
+    <tr><td style="font-weight: bold">Script Tags:</td> <td><input type="checkbox" name="stagschk"></td></tr>
+    <tr><td style="font-weight: bold">Prepend names:</td> <td><input type="checkbox" name="prenameschk" checked="true"></td></tr>
+    <tr><td colspan=2 style="font-size:smaller;">Tick this box to prepend the names of the individual twitter accounts to the smashed message.</td></tr>
+    <tr><td style="font-weight: bold">Append Tags:</td> <td><input type="checkbox" name="apptagschk" checked="true"></td></tr>
+    <tr><td colspan=2 style="font-size:smaller;">Take all tags and put them at the end.</td></tr>
+    <tr><td style="font-weight: bold">Append Initials:</td> <td><input type="checkbox" name="appinitialchk"></td></tr>
+    <tr><td colspan=2 style="font-size:smaller;">Append the author initials to the end.</td></tr>
+    <tr>
+        <td style="font-weight: bold">Feeds:</td> 
+        <td>
+            <select multiple size=8>
+            <option value="1">feed 1
+            <option value="2">feed 2
+            <option value="3">feed 3
+            <option value="4">feed 4
+            <option value="5">feed 5
+            <option value="6">feed 6
+            <option value="7">feed 7
+            <option value="8">feed 8
+            <option value="9">feed 9
+            <option value="10">feed 10
+            <option value="11">feed 11
+            <option value="12">feed 12
+            </select>
+        </td>
+    </tr>    
+    <tr><td colspan=2 style="font-size:smaller;">Hold down "Control", or "Command" on a Mac, to select more than one.</td></tr>
+    <tr><td colspan=2  style="text-align:center"><input type="submit" value="Submit"></td></tr>
+    </table>
+    </form>
+    </div>
+</div>
+{% endblock %}
+{% block sidebar %}
+<div class="block">
+    <div class="hd"><h2>Edit Accounts</h2></div>
+    <div class="bd">
+    <input type="button" value="Add Accounts">
+    <br />
+    test1 Twitter ac <a href="#">Edit</a> / <a href="#">View Messages</a>
+    <br />
+    test2 Twitter ac <a href="#">Edit</a> / <a href="#">View Messages</a>
+    </div>
+</div>
+{% endblock %}

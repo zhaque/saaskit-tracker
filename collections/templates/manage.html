@@ -1,0 +1,71 @@
+{% extends "main.html" %}
+
+{% block title %}{{request.muaccount}} : Manage Groups{% endblock %} 
+{% block body %}
+{% if error %}
+<div class="block">
+    <div class="hd"><h2>Error</h2></div>
+    <div class="bd">{{ error }}</div>
+</div>
+{% endif %}
+<div class="block"> 
+    <div class="hd"><h2>Add a new group</h2></div>
+    <div class="bd">
+    <form action="" method="POST">
+    <table>
+    <tr><td width="50%" style="font-weight: bold">Name:</td><td><input type="text" name="nametxt"></td></tr>
+    <tr><td style="font-weight: bold">Slug:</td><td><input type="text" name="slugtxt"></td></tr>
+    <tr><td style="font-weight: bold">Description:</td><td><textarea rows="4" cols="50" name="descrtext"></textarea></td></tr>
+    <tr><td style="font-weight: bold">Max Status:</td><td><input type="text" name="maxstatustxt" value="100"></td></tr>
+    <tr><td style="font-weight: bold">Update Interval:</td><td><input type="text" name="updatetxt" value="30"></td></tr>
+    <tr><td colspan=2><input type="submit" value="Save"></td></tr>
+    </table>
+    </form>
+    </div>
+    <br />
+</div>
+<div class="block">
+    <div class="hd"><h2>Whom & What</h2></div>
+    <div class="bd">
+    {% if group %}
+      {% if group.twit_sources.all %}
+        {% for source in group.twit_sources.all %}
+    <p>{{ source.name }} <a href="{% url tweets_manage_delete_source group.id source.id %}">remove</a></p>
+        {% endfor %}
+      {% else %}
+    <p>Group is empty</p>
+      {% endif %}      
+    {% else %}
+    <p>Please, select a group</p>
+    {% endif %}
+    </div>
+</div>
+{% endblock %}
+{% block sidebar %}
+<div class="block">
+    <div class="hd"><h2>Manage Groups</h2></div>
+    <div class="bd">
+    {% for group in groups %}
+    <p><a href="{% url tweets_manage_group group.id %}">{{ group.name }}</a> <a href="{% url tweets_delete_group group.id %}">remove</a></p>
+    {% endfor %}
+    </div>
+</div>
+<div class="block">
+    <div class="hd"><h2>Whom?</h2></div>
+    <div class="bd">
+    <form action="" method="POST">
+    {{ userlist_form.as_simpleinput }}
+    <p><input type="submit" value="Add"></p>
+    </form>
+    </div>
+</div>
+<div class="block">
+    <div class="hd"><h2>What?</h2></div>
+    <div class="bd">
+    <form action="" method="POST">
+    {{ termlist_form.as_simpleinput }}
+    <p><input type="submit" value="Add"></p>
+    </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "main.html" %}
+
+{% block title %}Delete Twitter source{% endblock %}
+{% block body %}
+<h1>Delete Twitter source</h1>
+{% if error %}
+  <p>Object not found. You're trying to delete smth that does not belong to you or does not exist.</p>
+{% else %}
+  <form action="" name="delete" method="post">
+  <p>You are trying to delete {{ object.get_type_display }} "{{ object.name }}". Sure?</p>
+  <input type="submit" value="{% filter capfirst %}destroy{% endfilter %}"/>
+  </form>
+{% endif %}
+{% endblock %}

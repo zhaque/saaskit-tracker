@@ -1,0 +1,12 @@
+{% extends "main.html" %}
+
+{% block title %}{{ caption }}{% endblock %} 
+{% block body %}
+  <h1>{{ caption }}</h1>
+  <form {% if form.is_multipart %}enctype="multipart/form-data"{% endif %} action="{% if form.action %}{{ form.action }}{% endif %}" method="{% if form.method %}{{ form.method }}{% else %}post{% endif %}">
+  <table>
+  {{ form.as_table }}
+    <tr><th></th><td><input type="submit" value="{% filter capfirst %}submit{% endfilter %}"/></td></tr>
+  </table>
+  </form>
+{% endblock %}
