@@ -91,11 +91,28 @@ class Pack(models.Model):
     description = models.TextField()
     channels = models.ManyToManyField(Channel, related_name='packs')
 
+
+class BaseSearch:
+    # private: 
+    # override it for custom fetch
+    def private_fetch(self, query):
+        pass
+    # private:
+    # override it for custom result parsing 
+    def get_result(self, response):
+        pass
+
+    # public method, don't override it in child classes, do it with private_fetch instead
+    def fetch(self, query):
+        #place for tracker call
+        response = self.private_fetch(query)
+        return self.get_result(response)
+
 import settings
 import yahoo.yql
 import yahoo.application
-class YqlSearch:
-    def fetch(self, query, oauth=False):
+class YqlSearch(BaseSearch):
+    def private_fetch(self, query, oauth=False):
         if oauth:
             oauthapp = yahoo.application.OAuthApplication(settings.CONSUMER_KEY, settings.CONSUMER_SECRET, settings.APPLICATION_ID, settings.CALLBACK_URL)
             request_token = oauthapp.get_request_token()
@@ -105,7 +122,7 @@ class YqlSearch:
             response = oauthapp.yql(query)
         else:
             response = yahoo.yql.YQLQuery().execute(query)
-        return self.get_result(response)
+        return response
 
     def get_result(self, response):
         res = dict()
@@ -119,8 +136,8 @@ class YqlSearch:
 
 import twython
 from xml.sax.saxutils import unescape
-class TwitterSearch():
-    def fetch(source, type=TwitSource.TERM, rpp=30):
+class TwitterSearch(BaseSearch):
+    def private_fetch(source, type=TwitSource.TERM, rpp=30):
         twitter = twython.setup()
         if type == TwitSource.TERM:
           #for terms
@@ -132,7 +149,7 @@ class TwitterSearch():
         elif type == TwitSource.USER::
           #for users
           response = twitter.getUserTimeline(screen_name=source.name, count=rpp)
-        return self.get_result(response)
+        return response
 
     def get_result(self, response):
         res = dict()
@@ -143,7 +160,7 @@ class TwitterSearch():
         return res
 
 import django_pipes as pipes
-class BaseSearch(pipes.Pipe):
+class PipeSearch(BaseSearch, pipes.Pipe):
     uri = ''
     cache_expiry = 3000000000
 
@@ -168,10 +185,7 @@ class BaseSearch(pipes.Pipe):
     def set_adult(self, adult=''):
         pass
 
-    def get_result(self, response):
-        pass
-
-    def fetch(self, query, count=None, offset=None, market=None, version=None, adult=None):
+    def private_fetch(self, query, count=None, offset=None, market=None, version=None, adult=None):
         self.set_query(query)
         if count:
             self.set_count(count)
@@ -184,8 +198,7 @@ class BaseSearch(pipes.Pipe):
         if adult:
             self.set_adult(adult)
 
-        response = self.fetch_with_options(self.options)
-        return self.get_result(response)
+        return self.fetch_with_options(self.options)
 
     def fetch_with_options(self, options):
         resp = self.objects.get(options)
@@ -193,9 +206,8 @@ class BaseSearch(pipes.Pipe):
             return resp
         return None
 
-class GoogleSearch(BaseSearch):
+class GoogleSearch(PipeSearch):
     uri = "http://ajax.googleapis.com/ajax/services/search/web"
-    cache_expiry = 3000000000
 
     def init_options(self):
         super(GoogleSearch, self).init_options()
@@ -210,7 +222,7 @@ class GoogleSearch(BaseSearch):
             res.update({'google':response.responseData.results,})
         return res
 
-class TwitterSearch(BaseSearch):
+class TwitterSearch(PipeSearch):
     uri = "http://search.twitter.com/search.json"
     cache_expiry = 300000
 
@@ -223,7 +235,7 @@ class TwitterSearch(BaseSearch):
             res.update({'twitter':response.results,})
         return res
 
-class BingMultiple(BaseSearch):
+class BingMultiple(PipeSearch):
     uri = "http://api.bing.net/json.aspx"
 
     def init_options(self):
@@ -384,3 +396,4 @@ class BingVideo(BingWeb):
 
     def set_offset(self, offset=0):
         self.options.update({'Video.Offset':offset})
+
