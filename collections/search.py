@@ -1,23 +1,22 @@
 class BaseSearch:
-    # private: 
     # override it for custom fetch
-    def private_fetch(self, query):
+    def raw_fetch(self, query):
         pass
-    # private:
+
     # override it for custom result parsing 
     def get_result(self, response):
         pass
 
-    # public method, don't override it in child classes, do it with private_fetch instead
+    # public method, don't override it in child classes, do it with raw_fetch instead
     def fetch(self, query):
-        response = self.private_fetch(query)
+        response = self.raw_fetch(query)
         return self.get_result(response)
 
 import settings
 import yahoo.yql
 import yahoo.application
 class YqlSearch(BaseSearch):
-    def private_fetch(self, query, oauth=False):
+    def raw_fetch(self, query, oauth=False):
         if oauth:
             oauthapp = yahoo.application.OAuthApplication(settings.CONSUMER_KEY, settings.CONSUMER_SECRET, settings.APPLICATION_ID, settings.CALLBACK_URL)
             request_token = oauthapp.get_request_token()
@@ -42,7 +41,7 @@ class YqlSearch(BaseSearch):
 import twython
 from xml.sax.saxutils import unescape
 class TwitterSearch(BaseSearch):
-    def private_fetch(source, type=TwitSource.TERM, rpp=30):
+    def raw_fetch(source, type=TwitSource.TERM, rpp=30):
         twitter = twython.setup()
         if type == TwitSource.TERM:
           #for terms
@@ -90,7 +89,7 @@ class PipeSearch(BaseSearch, pipes.Pipe):
     def set_adult(self, adult=''):
         pass
 
-    def private_fetch(self, query, count=None, offset=None, market=None, version=None, adult=None):
+    def raw_fetch(self, query, count=None, offset=None, market=None, version=None, adult=None):
         self.set_query(query)
         if count:
             self.set_count(count)
