@@ -1,4 +1,4 @@
-from tweets.models import TwitSource, TwitSourceGroup
+from tracker.models import TwitSource, TwitSourceGroup
 from django.views.generic.simple import direct_to_template
 from urlparse import urlparse
 from django.core.exceptions import ObjectDoesNotExist
@@ -65,7 +65,7 @@ def delete_twitsource(request, object_id):
 
   return delete_object(request, object_id=object_id, model=TwitSource, post_delete_redirect=reverse('tweets_waw'), login_required=True, template_name='tweets/delete_source.html', extra_context=context_vars)
 
-from tweets.forms import SourceListForm
+from tracker.forms import SourceListForm
 def process_source_form(form_obj, group):
   if form_obj.is_valid():
     form_data = form_obj.cleaned_data
