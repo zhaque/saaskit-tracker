@@ -22,7 +22,7 @@ class Channel(models.Model):
     slug = models.SlugField('url-friendly name', unique=True)
     description = models.TextField(blank=True, null=True)
 #    api = models.ForeignKey(SearchApi, verbose_name = 'api')
-    api = models.CharField(max_length=255, choices = self.SEARCH_MODELS)
+    api = models.CharField(max_length=255, choices = SEARCH_MODELS)
 
     def __unicode__(self):
         return self.name
