@@ -53,12 +53,12 @@ class Tracker(models.Model):
     name = models.CharField('name', max_length=255)
     status = models.DecimalField('status', choices = STATUSES, max_digits=1, decimal_places=0)
     query = models.CharField('query string', max_length=255)
-    pack = models.ForeignKey(Pack, related_name='trackers')
+    packs = models.ManyToManyField(Pack, related_name='trackers')
     startdate = models.DateTimeField('start date', blank=True, null=True)
     laststarted = models.DateTimeField('last started date', blank=True, null=True)
     is_public = models.BooleanField('is public')
-    muaccounts = models.ManyToManyField(MUAccount, related_name='trackers')
-#    muaccount = models.ForeignKey(MUAccount, null=True, black=True, related_name='trackers')
+#    muaccounts = models.ManyToManyField(MUAccount, related_name='trackers')
+    muaccount = models.ForeignKey(MUAccount, related_name='trackers')
     counter = models.PositiveIntegerField('run counter', default=0)
 
     def __unicode__(self):

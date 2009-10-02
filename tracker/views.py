@@ -11,23 +11,19 @@ from django.http import HttpResponseRedirect
 
 def index(request):
     context_vars = dict()
-    context_vars['trackers'] = Tracker.objects.filter(muaccounts = request.muaccount)
+    context_vars['trackers'] = Tracker.objects.filter(muaccount = request.muaccount)
     return direct_to_template(request, template='tracker/index.html', extra_context=context_vars)
     
 def add(request):
     context_vars = dict()
+    form = TrackerForm()
     if request.method == 'POST':
         form = TrackerForm(request.POST, request.FILES)
         if form.is_valid():
             tracker = form.save(commit=False)
-            try:
-              existing_tracker = Tracker.objects.get(query=tracker.query)
-              tracker = existing_tracker
-            except ObjectDoesNotExist:
-              tracker.status = Tracker.PENDING
-              tracker.save()
-            tracker.muaccounts.add(request.muaccount)
+            tracker.status = Tracker.PENDING
+            tracker.muaccount = request.muaccount
+            tracker.save()
             return HttpResponseRedirect(reverse('tracker_index'))
-    form = TrackerForm()
     context_vars['form'] = form
     return direct_to_template(request, template='tracker/form.html', extra_context=context_vars)
