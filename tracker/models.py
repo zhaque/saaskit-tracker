@@ -5,7 +5,6 @@ from muaccounts.models import MUAccount
 from livesearch.models import *
 from yql.search import *
 
-from settings import SEARCH_MODELS
 class Channel(models.Model):
     SEARCH_MODELS = (
         ('BingNews','Bing News'),
