@@ -8,6 +8,7 @@ from django.core.urlresolvers import reverse
 from django.views.generic.create_update import create_object
 from tracker.forms import TrackerForm
 from django.http import HttpResponseRedirect
+from django.http import Http404
 
 def index(request):
     context_vars = dict()
@@ -27,3 +28,23 @@ def add(request):
             return HttpResponseRedirect(reverse('tracker_index'))
     context_vars['form'] = form
     return direct_to_template(request, template='tracker/form.html', extra_context=context_vars)
+
+def edit(request, tracker_id):
+    context_vars = dict()
+    try:
+        tracker = Tracker.objects.get(id=tracker_id)
+    except ObjectDoesNotExist:
+        raise Http404
+    form = TrackerForm(instance=tracker)
+    if request.method == 'POST':
+        form = TrackerForm(request.POST, request.FILES, instance=tracker)
+        if form.is_valid():
+            tracker = form.save()
+            return HttpResponseRedirect(reverse('tracker_index'))
+    context_vars['form'] = form
+    return direct_to_template(request, template='tracker/form.html', extra_context=context_vars)
+
+def delete(request, tracker_id):
+    return delete_object(request,object_id=tracker_id, model=Tracker, post_delete_redirect=reverse('tracker_index'), login_required=True, template_name='tracker/delete_tracker.html')
+
+
