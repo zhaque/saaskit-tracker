@@ -1,0 +1,28 @@
+- model: tracker.Channel
+  pk: 1
+  fields:
+    name: Bing Web
+    slug: bing-web
+    api: BingWeb
+- model: tracker.Pack
+  pk: 1
+  fields:
+    name: Programming
+    slug: programming
+    channels: [1]
+- model: tracker.Tracker
+  pk: 1
+  fields:
+    name: Django
+    status: 1
+    query: django
+    packs: [1]
+    is_public: 0
+    muaccount: 2
+    counter: 0
+- model: tracker.Trend
+  pk: 1
+  fields:
+    name: Python
+    trackers: [1]
+    muaccount: 2
