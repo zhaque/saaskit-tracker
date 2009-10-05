@@ -100,7 +100,8 @@ class Trend(models.Model):
     """Tracker groups"""
     name = models.CharField('name', max_length=255)
     description = models.TextField('description', blank=True, null=True)
-    trackers = models.ManyToManyField(Tracker, related_name='buzz')
+    trackers = models.ManyToManyField(Tracker, related_name='trends')
+    muaccount = models.ForeignKey(MUAccount, related_name='trends')
 
     def __unicode__(self):
         return self.name

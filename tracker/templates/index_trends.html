@@ -1,0 +1,16 @@
+{% extends "main.html" %}
+
+{% block title %}{{request.muaccount}} : Trends{% endblock %} 
+{% block body %}
+<div class="block">
+    <div class="hd"><h2>Trends</h2></div>
+    <div class="bd">
+        <p><a href={% url tracker_trend_add %}>Add new</a></p>
+    {% if trends %}
+      {% for trend in trends %}
+        <p><a href={% url tracker_trend_edit trend.id %}>{{ trend }}</a>&nbsp<a href={% url tracker_trend_delete trend.id %}>delete</a></p>
+      {% endfor %}
+    {% endif %}
+    </div>
+</div>
+{% endblock %}
