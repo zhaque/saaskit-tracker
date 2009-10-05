@@ -19,4 +19,4 @@ class SourceListForm(forms.Form):
 class TrackerForm(forms.ModelForm):
   class Meta:
     model = Tracker
-    fields = ('name', 'query', 'packs', 'is_public')
+    fields = ('name', 'query', 'description', 'packs', 'is_public')

@@ -60,6 +60,7 @@ class Tracker(models.Model):
 #    muaccounts = models.ManyToManyField(MUAccount, related_name='trackers')
     muaccount = models.ForeignKey(MUAccount, related_name='trackers')
     counter = models.PositiveIntegerField('run counter', default=0)
+    description = models.TextField(blank=True, null=True)
 
     def __unicode__(self):
         return self.name
@@ -95,10 +96,10 @@ class Tracker(models.Model):
             result = api.raw_fetch(self.query)
             #save result to db
 
-class Buzz(models.Model):
+class Trend(models.Model):
     """Tracker groups"""
     name = models.CharField('name', max_length=255)
-    description = models.TextField('description')
+    description = models.TextField('description', blank=True, null=True)
     trackers = models.ManyToManyField(Tracker, related_name='buzz')
 
     def __unicode__(self):
