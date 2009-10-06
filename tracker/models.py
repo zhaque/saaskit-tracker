@@ -33,6 +33,7 @@ class Pack(models.Model):
     slug = models.SlugField('url-friendly name', unique=True)
     description = models.TextField(blank=True, null=True)
     channels = models.ManyToManyField(Channel, related_name='packs')
+    muaccounts = models.ManyToManyField(MUAccount, related_name='packs')
 
     def __unicode__(self):
         return self.name
@@ -109,3 +110,15 @@ class Trend(models.Model):
 #class SearchResult(models.Model):
 #    """Tracker search result object"""
 #    pass
+
+#class Query(models.Model):
+#    """generalized query model"""
+#    query
+#    channel
+#    startdate
+#
+#class RawResult(models.Model):
+#    result
+#    channel
+#    timestamp
+#

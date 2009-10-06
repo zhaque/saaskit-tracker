@@ -4,18 +4,48 @@
     name: Bing Web
     slug: bing-web
     api: BingWeb
+- model: tracker.Channel
+  pk: 2
+  fields:
+    name: Twitter
+    slug: twitter
+    api: TwitterSearch
 - model: tracker.Pack
   pk: 1
   fields:
-    name: Programming
-    slug: programming
+    name: Twitter
+    slug: twitter
+    channels: [2]
+    muaccounts: [2]
+- model: tracker.Pack
+  pk: 2
+  fields:
+    name: Bing
+    slug: bing
     channels: [1]
+- model: tracker.Pack
+  pk: 3
+  fields:
+    name: Unlimited
+    slug: unlimited
+    channels: [1,2]
+    muaccounts: [2]
 - model: tracker.Tracker
   pk: 1
   fields:
     name: Django
     status: 1
     query: django
+    packs: [3]
+    is_public: 0
+    muaccount: 2
+    counter: 0
+- model: tracker.Tracker
+  pk: 2
+  fields:
+    name: Ruby
+    status: 1
+    query: ruby on rails
     packs: [1]
     is_public: 0
     muaccount: 2

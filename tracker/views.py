@@ -5,7 +5,7 @@ from django.views.generic.simple import direct_to_template
 from django.views.generic.create_update import update_object, delete_object
 from django.http import HttpResponseRedirect
 from django.http import Http404
-from tracker.models import Tracker, Trend
+from tracker.models import Tracker, Trend, Pack
 from tracker.forms import TrackerForm, TrendForm
 
 @login_required
@@ -89,3 +89,25 @@ def edit_trend(request, trend_id):
 @login_required
 def delete_trend(request, trend_id):
     return delete_object(request,object_id=trend_id, model=Trend, post_delete_redirect=reverse('tracker_trend_index'), login_required=True, template_name='tracker/delete_trend.html')
+
+@login_required
+def admin(request):
+    context_vars = dict()
+    all_packs = Pack.objects.all()
+    if request.method == 'POST':
+        muaccount = request.muaccount
+        pack_ids = request.POST.getlist('packs')
+        if len(pack_ids) < muaccount.owner.quotas.muaccount_packs:
+            for pack in all_packs:
+                muaccount.packs.remove(pack)
+            for pack_id in pack_ids:
+                pack = Pack.objects.get(id=pack_id)
+                muaccount.packs.add(pack)
+            muaccount.save()
+
+    context_vars['packs'] = all_packs
+    context_vars['packs_used'] = all_packs.filter(muaccounts = request.muaccount).count()
+    
+    context_vars['trackers'] = Tracker.objects.filter(muaccount = request.muaccount)
+    context_vars['trends'] = Trend.objects.filter(muaccount = request.muaccount)
+    return direct_to_template(request, template='manage_apps.html', extra_context=context_vars)
