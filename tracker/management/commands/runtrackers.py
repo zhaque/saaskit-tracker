@@ -19,14 +19,13 @@ class Command(NoArgsCommand):
         for tracker in pending_trackers:
             for pack in tracker.packs.all():
               for channel in pack.channels.all():
-                  print channel
                   if channel.id in self.channels:
-                      self.channels[channel.id].update({tracker.query: 0})
+                      self.channels[channel.id].append(tracker.query)
                   else:
-                      self.channels[channel.id] = dict()
+                      self.channels[channel.id] = [tracker.query,]
 
         for id, queries in self.channels.items():
-            self.channels[id] = queries.keys()
+            self.channels[id] = list(set(queries))
 
     def fetch(self):
         for channel_id, queries in self.channels.items():

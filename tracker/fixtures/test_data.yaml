@@ -10,6 +10,12 @@
     name: Twitter
     slug: twitter
     api: TwitterSearch
+- model: tracker.Channel
+  pk: 3
+  fields:
+    name: Yql
+    slug: yql
+    api: YqlSearch
 - model: tracker.Pack
   pk: 1
   fields:
@@ -30,6 +36,13 @@
     slug: unlimited
     channels: [1,2]
     muaccounts: [2]
+- model: tracker.Pack
+  pk: 4
+  fields:
+    name: Yql only
+    slug: yql
+    channels: [3]
+    muaccounts: [2]
 - model: tracker.Tracker
   pk: 1
   fields:
@@ -46,9 +59,39 @@
     name: Ruby
     status: 1
     query: ruby on rails
-    packs: [1]
+    packs: [2]
     is_public: 0
     muaccount: 2
+    counter: 0
+- model: tracker.Tracker
+  pk: 3
+  fields:
+    name: Django from bing via yql
+    status: 1
+    query: select * from microsoft.bing.web where query='django'
+    packs: [4]
+    is_public: 0
+    muaccount: 2
+    counter: 0
+- model: tracker.Tracker
+  pk: 4
+  fields:
+    name: Django from bing via yql 2
+    status: 1
+    query: select * from microsoft.bing.web where query='django'
+    packs: [4]
+    is_public: 0
+    muaccount: 1
+    counter: 0
+- model: tracker.Tracker
+  pk: 5
+  fields:
+    name: Django
+    status: 1
+    query: django
+    packs: [2]
+    is_public: 0
+    muaccount: 3
     counter: 0
 - model: tracker.Trend
   pk: 1
