@@ -17,11 +17,13 @@ class Command(NoArgsCommand):
     def inject(self):
         pending_trackers = Tracker.objects.filter(status=Tracker.PENDING)
         for tracker in pending_trackers:
-            for channel in tracker.packs.all():
-                if channel.id in self.channels:
-                    self.channels[channel.id].update({tracker.query: 0})
-                else:
-                    self.channels[channel.id] = dict()
+            for pack in tracker.packs.all():
+              for channel in pack.channels.all():
+                  print channel
+                  if channel.id in self.channels:
+                      self.channels[channel.id].update({tracker.query: 0})
+                  else:
+                      self.channels[channel.id] = dict()
 
         for id, queries in self.channels.items():
             self.channels[id] = queries.keys()
