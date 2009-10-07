@@ -57,6 +57,8 @@ class Tracker(models.Model):
     packs = models.ManyToManyField(Pack, related_name='trackers')
     startdate = models.DateTimeField('start date', blank=True, null=True)
     laststarted = models.DateTimeField('last started date', blank=True, null=True)
+#    queries = models.ManyToManyField(Query
+#    createddate = models.DateTimeField('creation date', auto_now_add=True)
     is_public = models.BooleanField('is public')
 #    muaccounts = models.ManyToManyField(MUAccount, related_name='trackers')
     muaccount = models.ForeignKey(MUAccount, related_name='trackers')
@@ -111,12 +113,21 @@ class Trend(models.Model):
 #    """Tracker search result object"""
 #    pass
 
-#class Query(models.Model):
-#    """generalized query model"""
-#    query
-#    channel
-#    startdate
-#
+class Query(models.Model):
+    """generalized query model"""
+    query = models.CharField('query string', max_length=255)
+    channel = models.ForeignKey(Channel, related_name='queries')
+    createddate = models.DateTimeField('creation date', auto_now_add=True)
+    laststarted = models.DateTimeField('last started date', blank=True, null=True)
+#    nextstartdate
+#    skipstarts
+    
+    class Meta:
+        unique_together = ('query','channel')
+
+    def __unicode__(self):
+        return '%s in %s' % (self.query, self.channel)
+
 #class RawResult(models.Model):
 #    result
 #    channel

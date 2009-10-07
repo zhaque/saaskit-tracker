@@ -1,6 +1,7 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import CommandError
 from django.core.management.base import LabelCommand
-from tracker.models import Tracker, Channel
+from tracker.models import Tracker, Channel, Query
 from livesearch.models import *
 from yql.search import *
 
@@ -31,13 +32,13 @@ class Command(LabelCommand):
         for tracker in pending_trackers:
             for pack in tracker.packs.all():
               for channel in pack.channels.all():
-                  if channel.id in self.channels:
-                      self.channels[channel.id].append(tracker.query)
-                  else:
-                      self.channels[channel.id] = [tracker.query,]
-
-        for id, queries in self.channels.items():
-            self.channels[id] = list(set(queries))
+                  try:
+                      q = Query.objects.get(query = tracker.query, channel=channel)
+                  except ObjectDoesNotExist:
+                      q = Query()
+                      q.query = tracker.query
+                      q.channel = channel
+                      q.save()
 
     def fetch(self):
         for channel_id, queries in self.channels.items():
