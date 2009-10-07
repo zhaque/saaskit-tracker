@@ -7,9 +7,9 @@ from yql.search import *
 
 class Command(LabelCommand):
     help = 'Runs trackers.'
-    channels = dict()
     args = 'inject,fetch,parse,index'
     label = 'inject,fetch,parse,index'
+
     INJECT = 'inject'
     FETCH = 'fetch'
     PARSE = 'parse'
@@ -41,15 +41,14 @@ class Command(LabelCommand):
                       q.save()
 
     def fetch(self):
-        for channel_id, queries in self.channels.items():
-            channel = Channel.objects.get(id=channel_id)
-            api_class = globals()[channel.api]
+        queries = Query.objects.all()
+        for query in queries:
+            api_class = globals()[query.channel.api]
             api = api_class()
             if issubclass(api_class, PipeSearch):
                 api.init_options()
-            for query in queries:
-                result = api.fetch(query)
-                print result
+            result = api.fetch(query.query)
+            print result
 
     def parse(self):
         pass
