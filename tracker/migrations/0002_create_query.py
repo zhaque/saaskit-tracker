@@ -7,11 +7,30 @@ from tracker.models import *
 class Migration:
     
     def forwards(self, orm):
-        "Write your forwards migration here"
+        
+        # Adding model 'Query'
+        db.create_table('tracker_query', (
+            ('id', orm['tracker.query:id']),
+            ('query', orm['tracker.query:query']),
+            ('channel', orm['tracker.query:channel']),
+            ('createddate', orm['tracker.query:createddate']),
+            ('laststarted', orm['tracker.query:laststarted']),
+        ))
+        db.send_create_signal('tracker', ['Query'])
+        
+        # Creating unique_together for [query, channel] on Query.
+        db.create_unique('tracker_query', ['query', 'channel_id'])
+        
     
     
     def backwards(self, orm):
-        "Write your backwards migration here"
+        
+        # Deleting model 'Query'
+        db.delete_table('tracker_query')
+        
+        # Deleting unique_together for [query, channel] on Query.
+        db.delete_unique('tracker_query', ['query', 'channel_id'])
+        
     
     
     models = {
