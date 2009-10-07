@@ -1,18 +1,30 @@
 from django.core.management.base import CommandError
-from django.core.management.base import NoArgsCommand
+from django.core.management.base import LabelCommand
 from tracker.models import Tracker, Channel
 from livesearch.models import *
 from yql.search import *
 
-class Command(NoArgsCommand):
+class Command(LabelCommand):
     help = 'Runs trackers.'
     channels = dict()
+    args = 'inject,fetch,parse,index'
+    label = 'inject,fetch,parse,index'
+    INJECT = 'inject'
+    FETCH = 'fetch'
+    PARSE = 'parse'
+    INDEX = 'index'
     
-    def handle_noargs(self, **options):
-        self.inject()
-        self.fetch()
-        self.parse()
-        self.index()
+    def handle_label(self, label, **options):
+        if self.INJECT == label:
+            self.inject()
+        elif self.FETCH == label:
+            self.fetch()
+        elif self.PARSE == label:
+            self.parse()
+        elif self.INDEX == label:
+            self.index()
+        else:
+            print 'Valid arguments are %s' % self.args
 
     def inject(self):
         pending_trackers = Tracker.objects.filter(status=Tracker.PENDING)
