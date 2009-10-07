@@ -128,8 +128,18 @@ class Query(models.Model):
     def __unicode__(self):
         return '%s in %s' % (self.query, self.channel)
 
-#class RawResult(models.Model):
-#    result
-#    channel
-#    timestamp
+class RawResult(models.Model):
+    result = models.TextField()
+    channel = models.ForeignKey(Channel, related_name="raw_results")
+    createddate = models.DateTimeField('creation date', auto_now_add=True)
+
+#class KeyValue(models.Model):
+#    key = models.CharField(max_length=255)
+#    value = models.CharField(max_length=255)
 #
+#class ParsedResult(models.Model):
+#    channel = models.ForeignKey(Channel, related_name="parsed_results")
+#    key_values = models.ManyToManyField(KeyValue)
+#    createddate = models.DateTimeField('creation date', auto_now_add=True)
+
+

@@ -1,9 +1,10 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import CommandError
 from django.core.management.base import LabelCommand
-from tracker.models import Tracker, Channel, Query
+from tracker.models import Tracker, Channel, Query, RawResult
 from livesearch.models import *
 from yql.search import *
+import simplejson as json
 
 class Command(LabelCommand):
     help = 'Runs trackers.'
@@ -48,7 +49,10 @@ class Command(LabelCommand):
             if issubclass(api_class, PipeSearch):
                 api.init_options()
             result = api.fetch(query.query)
-            print result
+            res = RawResult()
+            res.result = json.dumps(result)
+            res.channel = query.channel
+            res.save()
 
     def parse(self):
         pass
