@@ -1,7 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import CommandError
 from django.core.management.base import LabelCommand
-from tracker.models import Tracker, Channel, Query, RawResult
+from tracker.models import Tracker, Channel, Query, RawResult, TwitterResult
 from livesearch.models import *
 from yql.search import *
 import simplejson as json
@@ -53,9 +53,25 @@ class Command(LabelCommand):
             res.result = json.dumps(result)
             res.channel = query.channel
             res.save()
+        Query.objects.all().delete()
 
     def parse(self):
-        pass
+        raw_results = RawResult.objects.all()
+        for raw_result in raw_results:
+            results = json.loads(raw_result.result)
+            if 'twitter' in results:
+                results = results['twitter']
+                for result in results:
+                    tw = TwitterResult()
+                    tw.iso_language_code = result['iso_language_code']
+                    tw.text = result['text']
+                    tw.source = result['source']
+                    tw.from_user = result['from_user']
+                    tw.from_user_id = result['from_user_id']
+                    tw.to_user_id = result['to_user_id']
+                    tw.tweet_id = result['id']
+                    tw.save()
+        RawResult.objects.all().delete()
 
     def index(self):
         pass
