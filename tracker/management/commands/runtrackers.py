@@ -1,7 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import CommandError
 from django.core.management.base import LabelCommand
-from tracker.models import Tracker, Channel, Query, RawResult, TwitterResult
+from tracker.models import Tracker, Channel, Query, RawResult, TwitterResult, ParsedResult
 from livesearch.models import *
 from yql.search import *
 import simplejson as json
@@ -62,15 +62,36 @@ class Command(LabelCommand):
             if 'twitter' in results:
                 results = results['twitter']
                 for result in results:
-                    tw = TwitterResult()
-                    tw.iso_language_code = result['iso_language_code']
-                    tw.text = result['text']
-                    tw.source = result['source']
-                    tw.from_user = result['from_user']
-                    tw.from_user_id = result['from_user_id']
-                    tw.to_user_id = result['to_user_id']
-                    tw.tweet_id = result['id']
-                    tw.save()
+#                    tw = TwitterResult()
+#                    tw.iso_language_code = result['iso_language_code']
+#                    tw.text = result['text']
+#                    tw.source = result['source']
+#                    tw.from_user = result['from_user']
+#                    tw.from_user_id = result['from_user_id']
+#                    tw.to_user_id = result['to_user_id']
+#                    tw.tweet_id = result['id']
+#                    tw.save()
+                    res = ParsedResult()
+                    res.channel = raw_result.channel
+                    res.text = result['text']
+                    res.url = 'http://twitter.com/%s/statuses/%s' % (result['from_user'], result['id'])
+                    res.save()
+            if 'web' in results:
+                results = results['web']['Results']
+                for result in results:
+                    res = ParsedResult()
+                    res.channel = raw_result.channel
+                    res.text = result['Title']
+                    res.url = result['Url']
+                    res.save()
+            if 'news' in results:
+                results = results['news']['Results']
+                for result in results:
+                    res = ParsedResult()
+                    res.channel = raw_result.channel
+                    res.text = result['Snippet']
+                    res.url = result['Url']
+                    res.save()
         RawResult.objects.all().delete()
 
     def index(self):

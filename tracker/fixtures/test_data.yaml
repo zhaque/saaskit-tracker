@@ -16,6 +16,12 @@
     name: Yql
     slug: yql
     api: YqlSearch
+- model: tracker.Channel
+  pk: 4
+  fields:
+    name: Bing News
+    slug: bing-news
+    api: BingNews
 - model: tracker.Pack
   pk: 1
   fields:
@@ -28,13 +34,13 @@
   fields:
     name: Bing
     slug: bing
-    channels: [1]
+    channels: [1,4]
 - model: tracker.Pack
   pk: 3
   fields:
     name: Unlimited
     slug: unlimited
-    channels: [1,2]
+    channels: [1,2,4]
     muaccounts: [2]
 - model: tracker.Pack
   pk: 4

@@ -153,4 +153,9 @@ class TwitterResult(models.Model):
 #    key_values = models.ManyToManyField(KeyValue)
 #    createddate = models.DateTimeField('creation date', auto_now_add=True)
 
+class ParsedResult(models.Model):
+    channel = models.ForeignKey(Channel, related_name="parsed_results")
+    text = models.CharField(max_length=255)
+    url = models.URLField()
+    createddate = models.DateTimeField('creation date', auto_now_add=True)
 
