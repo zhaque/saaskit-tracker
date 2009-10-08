@@ -17,6 +17,7 @@ def index(request):
 @login_required
 def add(request):
     context_vars = dict()
+    context_vars['caption'] = 'Add tracker'
     form = TrackerForm()
     if request.method == 'POST':
         form = TrackerForm(request.POST, request.FILES)
@@ -26,9 +27,86 @@ def add(request):
             tracker.muaccount = request.muaccount
             tracker.save()
             form.save_m2m()
-            return HttpResponseRedirect(reverse('tracker_index'))
+            return HttpResponseRedirect(reverse('tracker_advanced_query', args=[tracker.id]))
     context_vars['form'] = form
     return direct_to_template(request, template='tracker/form.html', extra_context=context_vars)
+
+@login_required
+def advanced_query(request, tracker_id):
+    context_vars = dict()
+    values = dict()
+    context_vars['caption'] = 'Refine query'
+    tracker = Tracker.objects.get(id=tracker_id)
+    has_twitter = False
+    for pack in tracker.packs.all():
+        for channel in pack.channels.all():
+            if 'TwitterSearch' == channel.api:
+                has_twitter=True
+            if 'YqlSearch' == channel.api:
+                return HttpResponseRedirect(reverse('tracker_index'))
+    context_vars['pack_has_twitter'] = has_twitter
+    values['ands'] = tracker.query
+    
+    if request.method == 'POST':
+        values['ands'] = request.POST.get('ands', '')
+        values['phrase'] = request.POST.get('phrase', '')
+        values['ors'] = request.POST.get('ors', '')
+        values['nots'] = request.POST.get('nots', '')
+        values['url'] = request.POST.get('url', '')
+        values['from'] = request.POST.get('from', '')
+        values['to'] = request.POST.get('to', '')
+        values['ref'] = request.POST.get('ref', '')
+        values['near'] = request.POST.get('near', '')
+        values['pos_tude'] = request.POST.get('pos_tude', '')
+        values['neg_tude'] = request.POST.get('neg_tude', '')
+        values['q_tude'] = request.POST.get('q_tude', '')
+        values['filter'] = request.POST.get('filter', '')
+
+        if values['ands']: query = values['ands']
+        if values['phrase']: query += " \"%s\"" % values['phrase']
+        if values['ors']:
+            words = values['ors'].split() 
+            for word in words:
+                query += " %s OR" % word
+            query = query[:-3]
+        if values['nots']:
+            words = values['nots'].split() 
+            for word in words:
+                query += " -%s" % word
+        if values['url']:
+            import re
+            regexp = re.compile('^(?#Protocol)(?:(?:ht|f)tp(?:s?)\:\/\/|~/|/)?(?#Username:Password)(?:\w+:\w+@)?(?#Subdomains)(?:(?:[-\w]+\.)+(?#TopLevel Domains)(?:com|org|net|gov|mil|biz|info|mobi|name|aero|jobs|museum|travel|[a-z]{2}))(?#Port)(?::[\d]{1,5})?(?#Directories)(?:(?:(?:/(?:[-\w~!$+|.,=]|%[a-f\d]{2})+)+|/)+|\?|#)?(?#Query)(?:(?:\?(?:[-\w~!$+|.,*:]|%[a-f\d{2}])+=(?:[-\w~!$+|.,*:=]|%[a-f\d]{2})*)(?:&(?:[-\w~!$+|.,*:]|%[a-f\d{2}])+=(?:[-\w~!$+|.,*:=]|%[a-f\d]{2})*)*)*(?#Anchor)(?:#(?:[-\w~!$+|.,*:=]|%[a-f\d]{2})*)?$')
+            res = regexp.match(values['url'])
+            if 'http://' != values['url'][:7] and 'ftp://' != values['url'][:6]:
+                values['url'] = 'http://' + values['url']
+            if res:
+                query += ' ' + values['url']
+        if values['from']:
+            query += ' from:%s' % values['from']
+        if values['to']:
+            query += ' to:%s' % values['to']
+        if values['ref']:
+            query += ' @%s' % values['ref']
+        if values['near']:
+            words = values['near'].split()
+            if len(words) > 1:
+                query += ' near:\"%s\"' % values['near']
+            else:
+                query += ' near:%s' % values['near']
+        if values['pos_tude']:
+            query += ' ' + values['pos_tude']
+        if values['neg_tude']:
+            query += ' ' + values['neg_tude']
+        if values['q_tude']:
+            query += ' ' + values['q_tude']
+        if values['filter']:
+            query += ' filter:%s' % values['filter']
+
+        tracker.query = query
+        tracker.save()
+        return HttpResponseRedirect(reverse('tracker_index'))
+    context_vars['values'] = values
+    return direct_to_template(request, template='tracker/adv_queryform.html', extra_context=context_vars)
 
 @login_required
 def edit(request, tracker_id):

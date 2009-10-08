@@ -1,0 +1,34 @@
+{% extends "main.html" %}
+
+{% block title %}{{ caption }}{% endblock %} 
+{% block body %}
+  <h1>{{ caption }}</h1>
+  <form action="" method="post">
+    <table>
+    	
+    	<tr><th>Words</th><td>All of these words</td><td><input id="ands" name="ands" type="text" value="{{ values.ands }}"/></td></tr>
+    	<tr><th></th><td>This exact phrase</td><td><input id="phrase" name="phrase" type="text" value="{{ values.phrase }}"/></td></tr>
+    	<tr><th></th><td>Any of these words</td><td><input id="ors" name="ors" type="text" value="{{ values.ors }}"/></td></tr>
+    	<tr><th></th><td>None of these words</td><td><input id="nots" name="nots" type="text" value="{{ values.nots }}"/></td></tr>
+    	<tr><th></th><td>This URL</td><td><input id="url" name="url" type="text" value="{{ values.url }}"/></td></tr>
+    	{% if pack_has_twitter %}
+    	<tr><td colspan="3" class="sep"></td></tr>	
+    	<tr><th>People</th><td>From this person</td><td><input id="from" name="from" type="text" value="{{ values.from }}"/></td></tr>
+    	<tr><th></th><td>To this person</td><td><input id="to" name="to" type="text" value="{{ values.to }}"/></td></tr>
+    	<tr><th></th><td>Referencing this person</td><td><input id="ref" name="ref" type="text" value="{{ values.ref }}"/></td></tr>
+    
+    	<tr><td colspan="3" class="sep"></td></tr>
+    	<tr><th>Places</th><td>Near this place</td><td><input id="near" name="near" type="text" value="{{ values.near }}"/></td></tr>
+    	
+    	<tr><td colspan="3" class="sep"></td></tr>
+    	<tr><th>Attitudes</th><td>With positive attitude :)</td><td><input id="pos_tude" name="pos_tude" type="checkbox" value=":)"{% if values.pos_tude %} checked="checked"{% endif %}/></td></tr>
+    	<tr><th></th><td>With negative attitude :(</td><td><input id="neg_tude" name="neg_tude" type="checkbox" value=":(" {% if values.neg_tude %} checked="checked"{% endif %}/></td></tr>
+    	<tr><th></th><td>Asking a question ?</td><td><input id="q_tude" name="q_tude" type="checkbox" value="?" {% if values.q_tude %} checked="checked"{% endif %}/></td></tr>
+    	
+    	<tr><td colspan="3" class="sep"></td></tr>
+    	<tr><th>Other</th><td>Containing links</td><td><input id="filter" name="filter" type="checkbox" value="links" {% if values.filter %} checked="checked"{% endif %}/></td></tr>
+    	{% endif %}
+    	<tr><th></th><td></td><td><input type="submit" value="Save" />&nbsp;<a href="{% url tracker_index %}">Discard and return to list</a></td></tr>
+    </table>
+  </form>
+{% endblock %}
