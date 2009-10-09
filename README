@@ -1,3 +1,5 @@
 django-collections
 ==================
 Channels/Groups/Tracker i.e. general collection support.
+
+TODO: investigate with south ignores unique=True for url field in ParsedResult model.

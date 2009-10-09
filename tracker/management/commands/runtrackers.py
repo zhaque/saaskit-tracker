@@ -5,6 +5,7 @@ from tracker.models import Tracker, Channel, Query, RawResult, TwitterResult, Pa
 from livesearch.models import *
 from yql.search import *
 import simplejson as json
+from datetime import datetime
 
 class Command(LabelCommand):
     help = 'Runs trackers.'
@@ -61,6 +62,7 @@ class Command(LabelCommand):
             results = json.loads(raw_result.result)
             if 'twitter' in results:
                 results = results['twitter']
+                total = len(results)
                 for result in results:
 #                    tw = TwitterResult()
 #                    tw.iso_language_code = result['iso_language_code']
@@ -73,24 +75,64 @@ class Command(LabelCommand):
 #                    tw.save()
                     res = ParsedResult()
                     res.channel = raw_result.channel
-                    res.text = result['text']
+                    res.total = total
+                    res.title = result['text'] 
                     res.url = 'http://twitter.com/%s/statuses/%s' % (result['from_user'], result['id'])
+                    res.text = result['text']
+#                    res.date = datetime.strptime(result['created_at'], '%a, %d %b %Y %H:%M:%S %z')
+                    res.date = datetime.strptime(result['created_at'][:-6], '%a, %d %b %Y %H:%M:%S')
+                    res.source = result['from_user'] 
+                    res.thumb = result['profile_image_url']
                     res.save()
             if 'web' in results:
+                total = results['web']['Total']
                 results = results['web']['Results']
                 for result in results:
                     res = ParsedResult()
                     res.channel = raw_result.channel
-                    res.text = result['Title']
+                    res.total = total
+                    res.title = result['Title'] 
                     res.url = result['Url']
+                    res.text = result['Description'] if 'Description' in result else None
+                    res.date = datetime.strptime(result['DateTime'], '%Y-%m-%dT%H:%M:%SZ')
                     res.save()
             if 'news' in results:
+                total = results['news']['Total']
                 results = results['news']['Results']
                 for result in results:
                     res = ParsedResult()
                     res.channel = raw_result.channel
-                    res.text = result['Snippet']
+                    res.total = total
+                    res.title = result['Title'] 
                     res.url = result['Url']
+                    res.text = result['Snippet']
+                    res.date = datetime.strptime(result['Date'], '%Y-%m-%dT%H:%M:%SZ')
+                    res.source = result['Source'] 
+                    res.save()
+            if 'images' in results:
+                total = results['images']['Total']
+                results = results['images']['Results']
+                for result in results:
+                    res = ParsedResult()
+                    res.channel = raw_result.channel
+                    res.total = total
+                    res.title = result['Title']
+                    res.url = result['Url']
+                    res.text = result['Title']
+                    res.thumb = result['Thumbnail']['Url']
+                    res.save()
+            if 'video' in results:
+                total = results['video']['Total']
+                results = results['video']['Results']
+                for result in results:
+                    res = ParsedResult()
+                    res.channel = raw_result.channel
+                    res.total = total
+                    res.title = result['Title']
+                    res.url = result['PlayUrl']
+                    res.text = result['Title']
+                    res.source = result['SourceTitle'] if 'SourceTitle' in result else None
+                    res.thumb = result['StaticThumbnail']['Url']
                     res.save()
         RawResult.objects.all().delete()
 

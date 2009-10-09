@@ -155,7 +155,13 @@ class TwitterResult(models.Model):
 
 class ParsedResult(models.Model):
     channel = models.ForeignKey(Channel, related_name="parsed_results")
-    text = models.CharField(max_length=255)
-    url = models.URLField()
+    total = models.PositiveIntegerField() #api total results
+    title = models.CharField(max_length=255)
+    url = models.URLField(unique=True)
+    text = models.CharField(max_length=255, blank=True, null=True) #any description, snippet or text
+    date = models.DateTimeField(blank=True, null=True)
+    source = models.CharField(max_length=255, blank=True, null=True) #any from, source etc
+    thumb = models.URLField(blank=True, null=True) #any image/video url
     createddate = models.DateTimeField('creation date', auto_now_add=True)
+    purgedate = models.DateTimeField('purge date', blank=True, null=True)
 
