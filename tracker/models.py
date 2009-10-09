@@ -129,6 +129,7 @@ class Query(models.Model):
         return '%s in %s' % (self.query, self.channel)
 
 class RawResult(models.Model):
+    query = models.CharField('query string', max_length=255)
     result = models.TextField()
     channel = models.ForeignKey(Channel, related_name="raw_results")
     createddate = models.DateTimeField('creation date', auto_now_add=True)
@@ -154,6 +155,7 @@ class TwitterResult(models.Model):
 #    createddate = models.DateTimeField('creation date', auto_now_add=True)
 
 class ParsedResult(models.Model):
+    query = models.CharField('query string', max_length=255)
     channel = models.ForeignKey(Channel, related_name="parsed_results")
     total = models.PositiveIntegerField() #api total results
     title = models.CharField(max_length=255)
@@ -164,4 +166,48 @@ class ParsedResult(models.Model):
     thumb = models.URLField(blank=True, null=True) #any image/video url
     createddate = models.DateTimeField('creation date', auto_now_add=True)
     purgedate = models.DateTimeField('purge date', blank=True, null=True)
+
+# statistics is tree-like with trends as roots,
+#trend1 - tracker1 - pack1 - channel1
+#      \           \       \ channel2
+#       \           \pack2 - channel1
+#        \                 \ channel2
+#         tracker2 - pack1 - channel1
+#                  \       \ channel2
+#                   \pack2 - channel1
+#                          \ channel2
+
+class Statistics(models.Model):
+    daily_change = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    total_today = models.PositiveIntegerField(blank=True, null=True)
+    total_this_week = models.PositiveIntegerField(blank=True, null=True)
+    daily_average = models.IntegerField(blank=True, null=True)
+    latest = models.ForeignKey(ParsedResult, blank=True, null=True)
+    most_active_source = models.CharField(max_length=255, blank=True, null=True)
+
+class TrendStatistics(models.Model):
+    created_date = models.DateTimeField('creation date', auto_now_add=True)
+    trend = models.OneToOneField(Trend)
+    stats = models.OneToOneField(Statistics)
+
+class TrackerStatistics(models.Model):
+    created_date = models.DateTimeField('creation date', auto_now_add=True)
+    tracker = models.OneToOneField(Tracker)
+    stats = models.OneToOneField(Statistics)
+    trendstats = models.ForeignKey(TrendStatistics)
+
+class PackStatistics(models.Model):
+    created_date = models.DateTimeField('creation date', auto_now_add=True)
+    pack = models.OneToOneField(Pack)
+    stats = models.OneToOneField(Statistics)
+    trackerstats = models.ForeignKey(TrackerStatistics)
+
+class ChannelStatistics(models.Model):
+    created_date = models.DateTimeField('creation date', auto_now_add=True)
+    channel = models.OneToOneField(Channel)
+    stats = models.OneToOneField(Statistics)
+    packstats = models.ForeignKey(PackStatistics)
+
+
+
 

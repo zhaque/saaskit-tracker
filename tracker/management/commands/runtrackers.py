@@ -51,6 +51,7 @@ class Command(LabelCommand):
                 api.init_options()
             result = api.fetch(query.query)
             res = RawResult()
+            res.query = query.query
             res.result = json.dumps(result)
             res.channel = query.channel
             res.save()
@@ -74,6 +75,7 @@ class Command(LabelCommand):
 #                    tw.tweet_id = result['id']
 #                    tw.save()
                     res = ParsedResult()
+                    res.query = raw_result.query
                     res.channel = raw_result.channel
                     res.total = total
                     res.title = result['text'] 
@@ -90,6 +92,7 @@ class Command(LabelCommand):
                 for result in results:
                     res = ParsedResult()
                     res.channel = raw_result.channel
+                    res.query = raw_result.query
                     res.total = total
                     res.title = result['Title'] 
                     res.url = result['Url']
@@ -102,6 +105,7 @@ class Command(LabelCommand):
                 for result in results:
                     res = ParsedResult()
                     res.channel = raw_result.channel
+                    res.query = raw_result.query
                     res.total = total
                     res.title = result['Title'] 
                     res.url = result['Url']
@@ -115,6 +119,7 @@ class Command(LabelCommand):
                 for result in results:
                     res = ParsedResult()
                     res.channel = raw_result.channel
+                    res.query = raw_result.query
                     res.total = total
                     res.title = result['Title']
                     res.url = result['Url']
@@ -127,6 +132,7 @@ class Command(LabelCommand):
                 for result in results:
                     res = ParsedResult()
                     res.channel = raw_result.channel
+                    res.query = raw_result.query
                     res.total = total
                     res.title = result['Title']
                     res.url = result['PlayUrl']
