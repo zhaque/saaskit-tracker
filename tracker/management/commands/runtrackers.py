@@ -1,7 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import CommandError
 from django.core.management.base import LabelCommand
-from tracker.models import Tracker, Channel, Query, RawResult, TwitterResult, ParsedResult
+from tracker.models import Trend, Tracker, Channel, Query, RawResult, TwitterResult, ParsedResult, TrendStatistics, TrackerStatistics, PackStatistics, ChannelStatistics, Statistics
 from livesearch.models import *
 from yql.search import *
 import simplejson as json
@@ -143,4 +143,50 @@ class Command(LabelCommand):
         RawResult.objects.all().delete()
 
     def index(self):
-        pass
+        trends = Trend.objects.all()
+        for trend in trends:
+            try:
+                trend_stats = TrendStatistics.objects.get(trend = trend)
+            except ObjectDoesNotExist:
+                trend_stats = TrendStatistics()
+                trend_stats.trend = trend
+                trend_stats.save()
+            trackers = trend.trackers.all()
+            for tracker in trackers:
+                try:
+                    tracker_stats = TrackerStatistics.objects.get(tracker = tracker, trendstats = trend_stats)
+                except ObjectDoesNotExist:
+                    tracker_stats = TrackerStatistics()
+                    tracker_stats.tracker = tracker
+                    tracker_stats.trendstats = trend_stats
+                    tracker_stats.save()
+                packs = tracker.packs.all()
+                for pack in packs:
+                    try:
+                        pack_stats = PackStatistics.objects.get(pack = pack, trackerstats = tracker_stats)
+                    except ObjectDoesNotExist:
+                        pack_stats = PackStatistics()
+                        pack_stats.pack = pack
+                        pack_stats.trackerstats = tracker_stats
+                        pack_stats.save()
+                    channels = pack.channels.all()
+                    for channel in channels:
+                        try:
+                            channel_stats = ChannelStatistics.objects.get(channel = channel, packstats = pack_stats)
+                        except ObjectDoesNotExist:
+                            channel_stats = ChannelStatistics()
+                            channel_stats.channel = channel
+                            channel_stats.packstats = pack_stats
+                        channel_stats.count_stats()
+                        channel_stats.save()
+                    pack_stats.count_stats()
+                    pack_stats.save()
+                tracker_stats.count_stats()
+                tracker_stats.save()
+            trend_stats.count_stats()
+            trend_stats.save()
+            
+            ParsedResult.objects.all().delete()
+
+
+

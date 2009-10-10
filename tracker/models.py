@@ -187,27 +187,50 @@ class Statistics(models.Model):
 
 class TrendStatistics(models.Model):
     created_date = models.DateTimeField('creation date', auto_now_add=True)
-    trend = models.OneToOneField(Trend)
-    stats = models.OneToOneField(Statistics)
+    trend = models.OneToOneField(Trend, unique=True)
+    stats = models.OneToOneField(Statistics, blank=True, null=True)
+
+    def count_stats(self):
+        stats = Statistics()
+        stats.daily_change = '10.54'
+        stats.save()
+        self.stats = stats
 
 class TrackerStatistics(models.Model):
     created_date = models.DateTimeField('creation date', auto_now_add=True)
-    tracker = models.OneToOneField(Tracker)
-    stats = models.OneToOneField(Statistics)
-    trendstats = models.ForeignKey(TrendStatistics)
+    tracker = models.OneToOneField(Tracker, unique=True)
+    stats = models.OneToOneField(Statistics, blank=True, null=True)
+    trendstats = models.ForeignKey(TrendStatistics, related_name='trackerstats')
+
+    def count_stats(self):
+        stats = Statistics()
+        stats.daily_change = '8.88'
+        stats.save()
+        self.stats = stats
 
 class PackStatistics(models.Model):
     created_date = models.DateTimeField('creation date', auto_now_add=True)
-    pack = models.OneToOneField(Pack)
-    stats = models.OneToOneField(Statistics)
-    trackerstats = models.ForeignKey(TrackerStatistics)
+    pack = models.OneToOneField(Pack, unique=True)
+    stats = models.OneToOneField(Statistics, blank=True, null=True)
+    trackerstats = models.ForeignKey(TrackerStatistics, related_name='packstats')
+
+    def count_stats(self):
+        stats = Statistics()
+        stats.daily_change = '5.55'
+        stats.save()
+        self.stats = stats
 
 class ChannelStatistics(models.Model):
     created_date = models.DateTimeField('creation date', auto_now_add=True)
-    channel = models.OneToOneField(Channel)
-    stats = models.OneToOneField(Statistics)
-    packstats = models.ForeignKey(PackStatistics)
+    channel = models.OneToOneField(Channel, unique=True)
+    stats = models.OneToOneField(Statistics, blank=True, null=True)
+    packstats = models.ForeignKey(PackStatistics, related_name='channelstats')
 
+    def count_stats(self):
+        stats = Statistics()
+        stats.daily_change = '2.34'
+        stats.save()
+        self.stats = stats
 
 
 
