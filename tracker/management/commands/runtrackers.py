@@ -66,7 +66,7 @@ class Command(LabelCommand):
             res.channel = query.channel
             res.save()
         Query.objects.all().delete()
-        finished_trackers = Tracker.objects.filter(status=Tracker.PENDING)
+        finished_trackers = Tracker.objects.filter(status=Tracker.FINISHED)
         for tracker in finished_trackers:
             tracker.status = Tracker.PENDING
             tracker.save()
