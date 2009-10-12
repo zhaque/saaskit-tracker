@@ -200,7 +200,7 @@ class Command(LabelCommand):
             trend_stats.count_stats()
             trend_stats.save()
             
-            ParsedResult.objects.all().delete()
+#            ParsedResult.objects.all().delete()
 
 
 

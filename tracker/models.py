@@ -195,11 +195,13 @@ class TrendStatistics(models.Model):
         return '%s' % self.trend
 
     def count_stats(self):
-        stats = Statistics()
-        stats.daily_change = '10.54'
-        stats.save()
-        self.stats = stats
-
+        if not self.stats:
+            stats = Statistics()
+            stats.save()
+            self.stats = stats
+        self.stats.daily_change = '10.54'
+        self.stats.save()
+    
 class TrackerStatistics(models.Model):
     created_date = models.DateTimeField('creation date', auto_now_add=True)
     tracker = models.ForeignKey(Tracker, related_name='stats')
@@ -215,10 +217,12 @@ class TrackerStatistics(models.Model):
         return '%s' % self.tracker
 
     def count_stats(self):
-        stats = Statistics()
-        stats.daily_change = '8.88'
-        stats.save()
-        self.stats = stats
+        if not self.stats:
+            stats = Statistics()
+            stats.save()
+            self.stats = stats
+        self.stats.daily_change = '8.88'
+        self.stats.save()
 
 class PackStatistics(models.Model):
     created_date = models.DateTimeField('creation date', auto_now_add=True)
@@ -235,10 +239,12 @@ class PackStatistics(models.Model):
         return '%s' % self.pack
 
     def count_stats(self):
-        stats = Statistics()
-        stats.daily_change = '5.55'
-        stats.save()
-        self.stats = stats
+        if not self.stats:
+            stats = Statistics()
+            stats.save()
+            self.stats = stats
+        self.stats.daily_change = '5.55'
+        self.stats.save()
 
 class ChannelStatistics(models.Model):
     created_date = models.DateTimeField('creation date', auto_now_add=True)
@@ -255,10 +261,11 @@ class ChannelStatistics(models.Model):
         return '%s' % self.channel
 
     def count_stats(self):
-        stats = Statistics()
-        stats.daily_change = '2.34'
-        stats.save()
-        self.stats = stats
-
+        if not self.stats:
+            stats = Statistics()
+            stats.save()
+            self.stats = stats
+        self.stats.daily_change = '2.34'
+        self.stats.save()
 
 
