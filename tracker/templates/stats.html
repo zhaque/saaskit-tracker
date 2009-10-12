@@ -5,16 +5,37 @@
 <h3>Available statistics</h3>
 <ul>
 {% for trend in trend_stats %}
-<li><a href="{% url tracker_list_stats_clicked trend.stats.id %}">{{ trend.trend }}</a>
+<li>
+  {% ifnotequal cur_stats.id trend.stats.id %}
+  <a href="{% url tracker_list_stats_clicked trend.stats.id %}">{{ trend.trend }}</a>
+  {% else %}
+  {{ trend.trend }}
+  {% endifnotequal %}
   <ul>
 {% for tracker in trend.trackerstats.all %}
-    <li><a href="{% url tracker_list_stats_clicked tracker.stats.id %}">{{ tracker.tracker }}</a>
+    <li>
+    {% ifnotequal cur_stats.id tracker.stats.id %}
+    <a href="{% url tracker_list_stats_clicked tracker.stats.id %}">{{ tracker.tracker }}</a>
+    {% else %}
+    {{ tracker.tracker }}
+    {% endifnotequal %}
       <ul>
     {% for pack in tracker.packstats.all %}
-        <li><a href="{% url tracker_list_stats_clicked pack.stats.id %}">{{ pack.pack }}</a>
+        <li>
+        {% ifnotequal cur_stats.id pack.stats.id %}
+        <a href="{% url tracker_list_stats_clicked pack.stats.id %}">{{ pack.pack }}</a>
+        {% else %}
+        {{ pack.pack }}
+        {% endifnotequal %}
           <ul>
       {% for channel in pack.channelstats.all %}
-            <li><a href="{% url tracker_list_stats_clicked channel.stats.id %}">{{ channel.channel }}</a></li>
+            <li>
+            {% ifnotequal cur_stats.id channel.stats.id %}
+            <a href="{% url tracker_list_stats_clicked channel.stats.id %}">{{ channel.channel }}</a>
+            {% else %}
+            {{ channel.channel }}
+            {% endifnotequal %}
+            </li>
       {% endfor %}
           </ul>
         </li>

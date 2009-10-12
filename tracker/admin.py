@@ -1,4 +1,4 @@
-from tracker.models import Trend, Tracker, Pack, Channel, Query, RawResult, TwitterResult, ParsedResult, TrendStatistics, TrackerStatistics, PackStatistics, ChannelStatistics, Statistics
+from tracker.models import Trend, Tracker, Pack, Channel, Query, RawResult, ParsedResult, TrendStatistics, TrackerStatistics, PackStatistics, ChannelStatistics, Statistics
 from django.contrib import admin
 
 class StatisticsInline(admin.TabularInline):
@@ -14,7 +14,6 @@ admin.site.register(Pack)
 admin.site.register(Channel)
 admin.site.register(Query)
 admin.site.register(RawResult)
-admin.site.register(TwitterResult)
 admin.site.register(ParsedResult)
 admin.site.register(TrendStatistics, TrendStatisticsAdmin)
 admin.site.register(TrackerStatistics)

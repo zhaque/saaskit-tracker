@@ -110,10 +110,6 @@ class Trend(models.Model):
     def __unicode__(self):
         return self.name
 
-#class SearchResult(models.Model):
-#    """Tracker search result object"""
-#    pass
-
 class Query(models.Model):
     """generalized query model"""
     query = models.CharField('query string', max_length=255)
@@ -134,26 +130,6 @@ class RawResult(models.Model):
     result = models.TextField()
     channel = models.ForeignKey(Channel, related_name="raw_results")
     createddate = models.DateTimeField('creation date', auto_now_add=True)
-
-class TwitterResult(models.Model):
-    iso_language_code = models.CharField(max_length=5)
-    text = models.CharField(max_length=255)
-#    created_at = models.CharField(max_length=255)
-#    profile_image_url = models.CharField(max_length=255)
-    source = models.CharField(max_length=255)
-    from_user = models.CharField(max_length=255)
-    from_user_id = models.CharField(max_length=255)
-    to_user_id = models.CharField(max_length=255, blank=True, null=True)
-    tweet_id = models.CharField(max_length=255)
-
-#class KeyValue(models.Model):
-#    key = models.CharField(max_length=255)
-#    value = models.CharField(max_length=255)
-#
-#class ParsedResult(models.Model):
-#    channel = models.ForeignKey(Channel, related_name="parsed_results")
-#    key_values = models.ManyToManyField(KeyValue)
-#    createddate = models.DateTimeField('creation date', auto_now_add=True)
 
 class ParsedResult(models.Model):
     query = models.CharField('query string', max_length=255)
@@ -208,8 +184,12 @@ class Statistics(models.Model):
 
 class TrendStatistics(models.Model):
     created_date = models.DateTimeField('creation date', auto_now_add=True)
-    trend = models.OneToOneField(Trend, unique=True)
+    trend = models.OneToOneField(Trend)
     stats = models.OneToOneField(Statistics, blank=True, null=True, related_name='trend')
+
+    class Meta:
+        verbose_name = 'trend statistics'
+        verbose_name_plural = 'trends statistics'
 
     def __unicode__(self):
         return '%s' % self.trend
@@ -222,9 +202,14 @@ class TrendStatistics(models.Model):
 
 class TrackerStatistics(models.Model):
     created_date = models.DateTimeField('creation date', auto_now_add=True)
-    tracker = models.OneToOneField(Tracker, unique=True)
+    tracker = models.ForeignKey(Tracker, related_name='stats')
     stats = models.OneToOneField(Statistics, blank=True, null=True, related_name='tracker')
     trendstats = models.ForeignKey(TrendStatistics, related_name='trackerstats')
+
+    class Meta:
+        unique_together = ('tracker', 'trendstats')
+        verbose_name = 'tracker statistics'
+        verbose_name_plural = 'trackers statistics'
 
     def __unicode__(self):
         return '%s' % self.tracker
@@ -237,9 +222,14 @@ class TrackerStatistics(models.Model):
 
 class PackStatistics(models.Model):
     created_date = models.DateTimeField('creation date', auto_now_add=True)
-    pack = models.OneToOneField(Pack, unique=True)
+    pack = models.ForeignKey(Pack, related_name='stats')
     stats = models.OneToOneField(Statistics, blank=True, null=True, related_name='pack')
     trackerstats = models.ForeignKey(TrackerStatistics, related_name='packstats')
+
+    class Meta:
+        unique_together = ('pack', 'trackerstats')
+        verbose_name = 'pack statistics'
+        verbose_name_plural = 'packs statistics'
 
     def __unicode__(self):
         return '%s' % self.pack
@@ -252,9 +242,14 @@ class PackStatistics(models.Model):
 
 class ChannelStatistics(models.Model):
     created_date = models.DateTimeField('creation date', auto_now_add=True)
-    channel = models.OneToOneField(Channel, unique=True)
+    channel = models.ForeignKey(Channel, related_name='stats')
     stats = models.OneToOneField(Statistics, blank=True, null=True, related_name='channel')
     packstats = models.ForeignKey(PackStatistics, related_name='channelstats')
+
+    class Meta:
+        unique_together = ('channel', 'packstats')
+        verbose_name = 'channel statistics'
+        verbose_name_plural = 'channels statistics'
 
     def __unicode__(self):
         return '%s' % self.channel

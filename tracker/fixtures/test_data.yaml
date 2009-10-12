@@ -115,5 +115,23 @@
   pk: 1
   fields:
     name: Python
-    trackers: [1]
+    trackers: [1,3]
+    muaccount: 2
+- model: tracker.Trend
+  pk: 2
+  fields:
+    name: Python
+    trackers: [4]
+    muaccount: 1
+- model: tracker.Trend
+  pk: 3
+  fields:
+    name: Python
+    trackers: [5]
+    muaccount: 3
+- model: tracker.Trend
+  pk: 4
+  fields:
+    name: RoR
+    trackers: [2]
     muaccount: 2
