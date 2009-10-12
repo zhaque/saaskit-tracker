@@ -1,0 +1,42 @@
+{% extends "main.html" %}
+
+{% block body %}
+{% if trend_stats %}
+<h3>Available statistics</h3>
+<ul>
+{% for trend in trend_stats %}
+<li><a href="{% url tracker_list_stats_clicked trend.stats.id %}">{{ trend.trend }}</a>
+  <ul>
+{% for tracker in trend.trackerstats.all %}
+    <li><a href="{% url tracker_list_stats_clicked tracker.stats.id %}">{{ tracker.tracker }}</a>
+      <ul>
+    {% for pack in tracker.packstats.all %}
+        <li><a href="{% url tracker_list_stats_clicked pack.stats.id %}">{{ pack.pack }}</a>
+          <ul>
+      {% for channel in pack.channelstats.all %}
+            <li><a href="{% url tracker_list_stats_clicked channel.stats.id %}">{{ channel.channel }}</a></li>
+      {% endfor %}
+          </ul>
+        </li>
+    {% endfor %}
+      </ul>
+    </li>
+{% endfor %}
+  </ul>
+</li>
+{% endfor %}
+</ul>
+
+{% if cur_stats %}
+<h3>Statistics for {{ cur_stats }}</h3>
+<p>Daily change: {{ cur_stats.daily_change }}</p>
+<p>Total today: {{ cur_stats.total_today }}</p>
+<p>Total this week: {{ cur_stats.total_this_week }}</p>
+<p>Daily average: {{ cur_stats.daily_average }}</p>
+<p>Latest: {{ cur_stats.latest }}</p>
+<p>Most active: {{ cur_stats.most_active_source }}</p>
+{% endif %}
+
+{% endif %}
+{% endblock %}
+

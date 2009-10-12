@@ -5,7 +5,7 @@ from django.views.generic.simple import direct_to_template
 from django.views.generic.create_update import update_object, delete_object
 from django.http import HttpResponseRedirect
 from django.http import Http404
-from tracker.models import Tracker, Trend, Pack
+from tracker.models import Tracker, Trend, Pack, TrendStatistics, Statistics
 from tracker.forms import TrackerForm, TrendForm
 
 @login_required
@@ -189,3 +189,12 @@ def admin(request):
     context_vars['trackers'] = Tracker.objects.filter(muaccount = request.muaccount)
     context_vars['trends'] = Trend.objects.filter(muaccount = request.muaccount)
     return direct_to_template(request, template='manage_apps.html', extra_context=context_vars)
+
+@login_required
+def stats(request, stats_id=None):
+    context_vars = dict()
+    context_vars['trend_stats'] = TrendStatistics.objects.all()
+    if stats_id:
+        context_vars['cur_stats'] = Statistics.objects.get(id=stats_id)
+    return direct_to_template(request, template='stats.html', extra_context=context_vars)
+

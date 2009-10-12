@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from datetime import datetime
 from muaccounts.models import MUAccount
@@ -185,10 +186,33 @@ class Statistics(models.Model):
     latest = models.ForeignKey(ParsedResult, blank=True, null=True)
     most_active_source = models.CharField(max_length=255, blank=True, null=True)
 
+    @property
+    def owner(self):
+      try:
+        return self.trend
+      except ObjectDoesNotExist:
+        try:
+          return self.tracker
+        except ObjectDoesNotExist:
+          try:
+            return self.pack
+          except ObjectDoesNotExist:
+            try:
+              return self.channel
+            except ObjectDoesNotExist:
+              pass
+      return None
+    
+    def __unicode__(self):
+      return '%s' % self.owner
+
 class TrendStatistics(models.Model):
     created_date = models.DateTimeField('creation date', auto_now_add=True)
     trend = models.OneToOneField(Trend, unique=True)
-    stats = models.OneToOneField(Statistics, blank=True, null=True)
+    stats = models.OneToOneField(Statistics, blank=True, null=True, related_name='trend')
+
+    def __unicode__(self):
+        return '%s' % self.trend
 
     def count_stats(self):
         stats = Statistics()
@@ -199,8 +223,11 @@ class TrendStatistics(models.Model):
 class TrackerStatistics(models.Model):
     created_date = models.DateTimeField('creation date', auto_now_add=True)
     tracker = models.OneToOneField(Tracker, unique=True)
-    stats = models.OneToOneField(Statistics, blank=True, null=True)
+    stats = models.OneToOneField(Statistics, blank=True, null=True, related_name='tracker')
     trendstats = models.ForeignKey(TrendStatistics, related_name='trackerstats')
+
+    def __unicode__(self):
+        return '%s' % self.tracker
 
     def count_stats(self):
         stats = Statistics()
@@ -211,8 +238,11 @@ class TrackerStatistics(models.Model):
 class PackStatistics(models.Model):
     created_date = models.DateTimeField('creation date', auto_now_add=True)
     pack = models.OneToOneField(Pack, unique=True)
-    stats = models.OneToOneField(Statistics, blank=True, null=True)
+    stats = models.OneToOneField(Statistics, blank=True, null=True, related_name='pack')
     trackerstats = models.ForeignKey(TrackerStatistics, related_name='packstats')
+
+    def __unicode__(self):
+        return '%s' % self.pack
 
     def count_stats(self):
         stats = Statistics()
@@ -223,8 +253,11 @@ class PackStatistics(models.Model):
 class ChannelStatistics(models.Model):
     created_date = models.DateTimeField('creation date', auto_now_add=True)
     channel = models.OneToOneField(Channel, unique=True)
-    stats = models.OneToOneField(Statistics, blank=True, null=True)
+    stats = models.OneToOneField(Statistics, blank=True, null=True, related_name='channel')
     packstats = models.ForeignKey(PackStatistics, related_name='channelstats')
+
+    def __unicode__(self):
+        return '%s' % self.channel
 
     def count_stats(self):
         stats = Statistics()

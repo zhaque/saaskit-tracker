@@ -10,4 +10,6 @@ urlpatterns = patterns('',
     url(r'^trend/add/$', 'tracker.views.add_trend', name='tracker_trend_add'),
     url(r'^trend/edit/(?P<trend_id>\d+)/$', 'tracker.views.edit_trend', name='tracker_trend_edit'),
     url(r'^trend/delete/(?P<trend_id>\d+)/$', 'tracker.views.delete_trend', name='tracker_trend_delete'),
+    url(r'^stats/$', 'tracker.views.stats', name='tracker_list_stats'),
+    url(r'^stats/(?P<stats_id>\d+)/$', 'tracker.views.stats', name='tracker_list_stats_clicked'),
 )
