@@ -32,6 +32,13 @@ class Command(LabelCommand):
     def inject(self):
         pending_trackers = Tracker.objects.filter(status=Tracker.PENDING)
         for tracker in pending_trackers:
+            tracker.status = Tracker.STARTED
+            if not tracker.startdate:
+                tracker.startdate = datetime.now()
+                tracker.laststarted = datetime.now()
+            else:
+                tracker.laststarted = datetime.now()
+            tracker.save()
             for pack in tracker.packs.all():
               for channel in pack.channels.all():
                   try:
@@ -41,6 +48,9 @@ class Command(LabelCommand):
                       q.query = tracker.query
                       q.channel = channel
                       q.save()
+            tracker.counter += 1
+            tracker.status = Tracker.FINISHED
+            tracker.save()
 
     def fetch(self):
         queries = Query.objects.all()
@@ -56,6 +66,19 @@ class Command(LabelCommand):
             res.channel = query.channel
             res.save()
         Query.objects.all().delete()
+        finished_trackers = Tracker.objects.filter(status=Tracker.PENDING)
+        for tracker in finished_trackers:
+            tracker.status = Tracker.PENDING
+            tracker.save()
+
+    def get_or_create_parsedres(self, url):
+        try:
+            res = ParsedResult.objects.get(url=url)
+        except ObjectDoesNotExist:
+            res = ParsedResult()
+        res.url = url
+        return res
+    
 
     def parse(self):
         raw_results = RawResult.objects.all()
@@ -65,12 +88,12 @@ class Command(LabelCommand):
                 results = results['twitter']
                 total = len(results)
                 for result in results:
-                    res = ParsedResult()
+                    url = 'http://twitter.com/%s/statuses/%s' % (result['from_user'], result['id'])
+                    res = self.get_or_create_parsedres(url)
                     res.query = raw_result.query
                     res.channel = raw_result.channel
                     res.total = total
                     res.title = result['text'] 
-                    res.url = 'http://twitter.com/%s/statuses/%s' % (result['from_user'], result['id'])
                     res.text = result['text']
 #                    res.date = datetime.strptime(result['created_at'], '%a, %d %b %Y %H:%M:%S %z')
                     res.date = datetime.strptime(result['created_at'][:-6], '%a, %d %b %Y %H:%M:%S')
@@ -81,12 +104,12 @@ class Command(LabelCommand):
                 total = results['web']['Total']
                 results = results['web']['Results']
                 for result in results:
-                    res = ParsedResult()
+                    url = result['Url']
+                    res = self.get_or_create_parsedres(url)
                     res.channel = raw_result.channel
                     res.query = raw_result.query
                     res.total = total
                     res.title = result['Title'] 
-                    res.url = result['Url']
                     res.text = result['Description'] if 'Description' in result else None
                     res.date = datetime.strptime(result['DateTime'], '%Y-%m-%dT%H:%M:%SZ')
                     res.save()
@@ -94,12 +117,12 @@ class Command(LabelCommand):
                 total = results['news']['Total']
                 results = results['news']['Results']
                 for result in results:
-                    res = ParsedResult()
+                    url = result['Url']
+                    res = self.get_or_create_parsedres(url)
                     res.channel = raw_result.channel
                     res.query = raw_result.query
                     res.total = total
                     res.title = result['Title'] 
-                    res.url = result['Url']
                     res.text = result['Snippet']
                     res.date = datetime.strptime(result['Date'], '%Y-%m-%dT%H:%M:%SZ')
                     res.source = result['Source'] 
@@ -108,12 +131,12 @@ class Command(LabelCommand):
                 total = results['images']['Total']
                 results = results['images']['Results']
                 for result in results:
-                    res = ParsedResult()
+                    url = result['Url']
+                    res = self.get_or_create_parsedres(url)
                     res.channel = raw_result.channel
                     res.query = raw_result.query
                     res.total = total
                     res.title = result['Title']
-                    res.url = result['Url']
                     res.text = result['Title']
                     res.thumb = result['Thumbnail']['Url']
                     res.save()
@@ -121,12 +144,12 @@ class Command(LabelCommand):
                 total = results['video']['Total']
                 results = results['video']['Results']
                 for result in results:
-                    res = ParsedResult()
+                    url = result['PlayUrl']
+                    res = self.get_or_create_parsedres(url)
                     res.channel = raw_result.channel
                     res.query = raw_result.query
                     res.total = total
                     res.title = result['Title']
-                    res.url = result['PlayUrl']
                     res.text = result['Title']
                     res.source = result['SourceTitle'] if 'SourceTitle' in result else None
                     res.thumb = result['StaticThumbnail']['Url']

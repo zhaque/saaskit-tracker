@@ -5,7 +5,7 @@ from django.views.generic.simple import direct_to_template
 from django.views.generic.create_update import update_object, delete_object
 from django.http import HttpResponseRedirect
 from django.http import Http404
-from tracker.models import Tracker, Trend, Pack, TrendStatistics, Statistics
+from tracker.models import Tracker, Trend, Pack, TrendStatistics, TrackerStatistics, Statistics, ParsedResult
 from tracker.forms import TrackerForm, TrendForm
 
 @login_required
@@ -124,6 +124,7 @@ def edit(request, tracker_id):
     context_vars['form'] = form
     return direct_to_template(request, template='tracker/form.html', extra_context=context_vars)
 
+@login_required
 def delete(request, tracker_id):
     return delete_object(request,object_id=tracker_id, model=Tracker, post_delete_redirect=reverse('tracker_index'), login_required=True, template_name='tracker/delete_tracker.html')
 
@@ -196,5 +197,13 @@ def stats(request, stats_id=None):
     context_vars['trend_stats'] = TrendStatistics.objects.all()
     if stats_id:
         context_vars['cur_stats'] = Statistics.objects.get(id=stats_id)
-    return direct_to_template(request, template='stats.html', extra_context=context_vars)
+        if isinstance(context_vars['cur_stats'].owner, TrackerStatistics):
+            tracker = context_vars['cur_stats'].owner.tracker
+            total_mentions = 0
+            for pack in tracker.packs.all():
+              for channel in pack.channels.all():
+                total_mentions += ParsedResult.objects.filter(query=tracker.query, channel=channel).count()
+            tracker.total_mentions = total_mentions
+            context_vars['tracker'] = tracker
 
+    return direct_to_template(request, template='stats.html', extra_context=context_vars)

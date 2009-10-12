@@ -48,6 +48,16 @@
 {% endfor %}
 </ul>
 
+{% if tracker %}
+<h3>Statistics for tracker {{ tracker }}</h3>
+<p>Tracked since: {{ tracker.startdate }}</p>
+<p>Last tracked: {{ tracker.laststarted }}</p>
+<p>Total run: {{ tracker.counter }}</p>
+{% if tracker.total_mentions %}
+<p>Total mentions: {{ tracker.total_mentions }}</p>
+{% endif %}
+{% endif %}
+
 {% if cur_stats %}
 <h3>Statistics for {{ cur_stats }}</h3>
 <p>Daily change: {{ cur_stats.daily_change }}</p>

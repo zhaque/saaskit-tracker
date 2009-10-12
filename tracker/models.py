@@ -74,7 +74,7 @@ class Tracker(models.Model):
             self.status = self.STARTED
             self.startdate = datetime.now()
         elif self.FINISHED == self.status:
-            self. laststarted = datetime.now()
+            self.laststarted = datetime.now()
         else:
             return
         self.save()
