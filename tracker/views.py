@@ -5,7 +5,7 @@ from django.views.generic.simple import direct_to_template
 from django.views.generic.create_update import update_object, delete_object
 from django.http import HttpResponseRedirect
 from django.http import Http404
-from tracker.models import Tracker, Trend, Pack, TrendStatistics, TrackerStatistics, Statistics, ParsedResult
+from tracker.models import Tracker, Trend, Pack, TrendStatistics, TrackerStatistics, PackStatistics, ChannelStatistics, Statistics, ParsedResult
 from tracker.forms import TrackerForm, TrendForm
 
 @login_required
@@ -205,5 +205,7 @@ def stats(request, stats_id=None):
         if isinstance(context_vars['cur_stats'].owner, TrackerStatistics):
             tracker = context_vars['cur_stats'].owner.tracker
             context_vars['tracker'] = tracker
+        if isinstance(context_vars['cur_stats'].owner, ChannelStatistics) or isinstance(context_vars['cur_stats'].owner, PackStatistics) or isinstance(context_vars['cur_stats'].owner, TrackerStatistics):
+            context_vars['latest'] = context_vars['cur_stats'].owner.get_latest()
 
     return direct_to_template(request, template='stats.html', extra_context=context_vars)

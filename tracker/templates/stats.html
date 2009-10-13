@@ -64,6 +64,12 @@
 <p>Most active: {{ cur_stats.most_active_source }}</p>
 {% endif %}
 
+{% if latest %}
+<h3>Latest mentions for {{ cur_stats }}</h3>
+  {% for obj in latest %}
+    <p>{{ obj.date }} <a href="{{ obj.url }}">{{ obj.title }}</a></p>
+  {% endfor %}
+{% endif %}
 {% endif %}
 {% endblock %}
 

@@ -219,6 +219,9 @@ class StatisticMethods:
         total = 0
         return total
 
+    def get_latest(self):
+        pass
+
 class TrendStatistics(models.Model, StatisticMethods):
     created_date = models.DateTimeField('creation date', auto_now_add=True)
     trend = models.OneToOneField(Trend)
@@ -266,6 +269,13 @@ class TrackerStatistics(models.Model, StatisticMethods):
             total += ParsedResult.objects.filter(query=self.tracker.query, channel=channel, date__gte=startdate).count()
         return total
 
+    def get_latest(self):
+        channels = []
+        for pack in self.get_tracker().packs.all():
+            channels += list(pack.channels.all())
+        latest = ParsedResult.objects.filter(query=self.get_tracker().query, channel__in=channels).order_by('-date')[:20]
+        return latest
+        
 class PackStatistics(models.Model, StatisticMethods):
     created_date = models.DateTimeField('creation date', auto_now_add=True)
     pack = models.ForeignKey(Pack, related_name='stats')
@@ -289,6 +299,10 @@ class PackStatistics(models.Model, StatisticMethods):
           total += ParsedResult.objects.filter(query=self.get_tracker().query, channel=channel, date__gte=startdate).count()
         return total
 
+    def get_latest(self):
+        channels = list(self.pack.channels.all())
+        latest = ParsedResult.objects.filter(query=self.get_tracker().query, channel__in=channels).order_by('-date')[:20]
+        return latest
 
 class ChannelStatistics(models.Model, StatisticMethods):
     created_date = models.DateTimeField('creation date', auto_now_add=True)
@@ -310,4 +324,8 @@ class ChannelStatistics(models.Model, StatisticMethods):
     def count_total_mentions(self, startdate):
         total = ParsedResult.objects.filter(query=self.get_tracker().query, channel=self.channel, date__gte=startdate).count()
         return total
+
+    def get_latest(self):
+        latest = ParsedResult.objects.filter(query=self.get_tracker().query, channel=self.channel).order_by('-date')[:20]
+        return latest
 
