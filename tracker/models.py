@@ -1,6 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
-from datetime import datetime
+from datetime import datetime, timedelta
 from muaccounts.models import MUAccount
 
 from livesearch.models import *
@@ -156,10 +156,9 @@ class ParsedResult(models.Model):
 
 class Statistics(models.Model):
     daily_change = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    total_today = models.PositiveIntegerField(blank=True, null=True)
-    total_this_week = models.PositiveIntegerField(blank=True, null=True)
+    total_24hours = models.PositiveIntegerField(blank=True, null=True)
+    total_7days = models.PositiveIntegerField(blank=True, null=True)
     daily_average = models.IntegerField(blank=True, null=True)
-    latest = models.ForeignKey(ParsedResult, blank=True, null=True)
     most_active_source = models.CharField(max_length=255, blank=True, null=True)
 
     @property
@@ -221,8 +220,41 @@ class TrackerStatistics(models.Model):
             stats = Statistics()
             stats.save()
             self.stats = stats
-        self.stats.daily_change = '8.88'
+        self.stats.daily_change = self.count_daily_change()
+        self.stats.total_24hours = self.count_total_24hours()
+        self.stats.total_7days = self.count_total_7days()
+        self.stats.daily_average = self.count_daily_average()
         self.stats.save()
+
+    def count_daily_change(self):
+        print self.tracker
+        today = self.count_total_24hours()
+        print today
+        yesterday = self.count_total_mentions(datetime.now()-timedelta(days=2)) - today
+        print yesterday
+        if 0 == yesterday:
+            return None
+        print float(today-yesterday)/yesterday*100
+        return '%s' % (float(today-yesterday)/yesterday*100)
+        
+    def count_daily_average(self):
+        start = self.tracker.startdate
+        delta = (datetime.now() - start).days + 1
+        total = self.count_total_mentions(start)
+        return total/delta
+        
+    def count_total_7days(self):
+        return self.count_total_mentions(datetime.now() - timedelta(days=7))
+
+    def count_total_24hours(self):
+        return self.count_total_mentions(datetime.now() - timedelta(days=1))
+
+    def count_total_mentions(self, startdate):
+        total = 0
+        for pack in self.tracker.packs.all():
+          for channel in pack.channels.all():
+            total += ParsedResult.objects.filter(query=self.tracker.query, channel=channel, date__gte=startdate).count()
+        return total
 
 class PackStatistics(models.Model):
     created_date = models.DateTimeField('creation date', auto_now_add=True)

@@ -199,11 +199,6 @@ def stats(request, stats_id=None):
         context_vars['cur_stats'] = Statistics.objects.get(id=stats_id)
         if isinstance(context_vars['cur_stats'].owner, TrackerStatistics):
             tracker = context_vars['cur_stats'].owner.tracker
-            total_mentions = 0
-            for pack in tracker.packs.all():
-              for channel in pack.channels.all():
-                total_mentions += ParsedResult.objects.filter(query=tracker.query, channel=channel).count()
-            tracker.total_mentions = total_mentions
             context_vars['tracker'] = tracker
 
     return direct_to_template(request, template='stats.html', extra_context=context_vars)

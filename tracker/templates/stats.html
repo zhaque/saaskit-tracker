@@ -53,18 +53,14 @@
 <p>Tracked since: {{ tracker.startdate }}</p>
 <p>Last tracked: {{ tracker.laststarted }}</p>
 <p>Total run: {{ tracker.counter }}</p>
-{% if tracker.total_mentions %}
-<p>Total mentions: {{ tracker.total_mentions }}</p>
-{% endif %}
 {% endif %}
 
 {% if cur_stats %}
 <h3>Statistics for {{ cur_stats }}</h3>
 <p>Daily change: {{ cur_stats.daily_change }}</p>
-<p>Total today: {{ cur_stats.total_today }}</p>
-<p>Total this week: {{ cur_stats.total_this_week }}</p>
+<p>Total 24 hours: {{ cur_stats.total_24hours }}</p>
+<p>Total 7 days: {{ cur_stats.total_7days }}</p>
 <p>Daily average: {{ cur_stats.daily_average }}</p>
-<p>Latest: {{ cur_stats.latest }}</p>
 <p>Most active: {{ cur_stats.most_active_source }}</p>
 {% endif %}
 
