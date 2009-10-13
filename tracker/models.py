@@ -181,39 +181,9 @@ class Statistics(models.Model):
     def __unicode__(self):
       return '%s' % self.owner
 
-class TrendStatistics(models.Model):
-    created_date = models.DateTimeField('creation date', auto_now_add=True)
-    trend = models.OneToOneField(Trend)
-    stats = models.OneToOneField(Statistics, blank=True, null=True, related_name='trend')
-
-    class Meta:
-        verbose_name = 'trend statistics'
-        verbose_name_plural = 'trends statistics'
-
-    def __unicode__(self):
-        return '%s' % self.trend
-
-    def count_stats(self):
-        if not self.stats:
-            stats = Statistics()
-            stats.save()
-            self.stats = stats
-        self.stats.daily_change = '10.54'
-        self.stats.save()
-    
-class TrackerStatistics(models.Model):
-    created_date = models.DateTimeField('creation date', auto_now_add=True)
-    tracker = models.ForeignKey(Tracker, related_name='stats')
-    stats = models.OneToOneField(Statistics, blank=True, null=True, related_name='tracker')
-    trendstats = models.ForeignKey(TrendStatistics, related_name='trackerstats')
-
-    class Meta:
-        unique_together = ('tracker', 'trendstats')
-        verbose_name = 'tracker statistics'
-        verbose_name_plural = 'trackers statistics'
-
-    def __unicode__(self):
-        return '%s' % self.tracker
+class StatisticMethods:
+    def get_tracker(self):
+        pass
 
     def count_stats(self):
         if not self.stats:
@@ -227,18 +197,15 @@ class TrackerStatistics(models.Model):
         self.stats.save()
 
     def count_daily_change(self):
-        print self.tracker
         today = self.count_total_24hours()
-        print today
         yesterday = self.count_total_mentions(datetime.now()-timedelta(days=2)) - today
-        print yesterday
         if 0 == yesterday:
             return None
         print float(today-yesterday)/yesterday*100
         return '%s' % (float(today-yesterday)/yesterday*100)
         
     def count_daily_average(self):
-        start = self.tracker.startdate
+        start = self.get_tracker().startdate
         delta = (datetime.now() - start).days + 1
         total = self.count_total_mentions(start)
         return total/delta
@@ -251,12 +218,56 @@ class TrackerStatistics(models.Model):
 
     def count_total_mentions(self, startdate):
         total = 0
+        return total
+
+class TrendStatistics(models.Model, StatisticMethods):
+    created_date = models.DateTimeField('creation date', auto_now_add=True)
+    trend = models.OneToOneField(Trend)
+    stats = models.OneToOneField(Statistics, blank=True, null=True, related_name='trend')
+
+    class Meta:
+        verbose_name = 'trend statistics'
+        verbose_name_plural = 'trends statistics'
+
+    def __unicode__(self):
+        return '%s' % self.trend
+
+    def count_daily_average(self):
+        return None
+
+    def count_total_mentions(self, startdate):
+        total = 0
+        for tracker in self.trend.trackers.all():
+          for pack in tracker.packs.all():
+            for channel in pack.channels.all():
+              total += ParsedResult.objects.filter(query=tracker.query, channel=channel, date__gte=startdate).count()
+        return total
+    
+class TrackerStatistics(models.Model, StatisticMethods):
+    created_date = models.DateTimeField('creation date', auto_now_add=True)
+    tracker = models.ForeignKey(Tracker, related_name='stats')
+    stats = models.OneToOneField(Statistics, blank=True, null=True, related_name='tracker')
+    trendstats = models.ForeignKey(TrendStatistics, related_name='trackerstats')
+
+    class Meta:
+        unique_together = ('tracker', 'trendstats')
+        verbose_name = 'tracker statistics'
+        verbose_name_plural = 'trackers statistics'
+
+    def __unicode__(self):
+        return '%s' % self.tracker
+
+    def get_tracker(self):
+        return self.tracker
+
+    def count_total_mentions(self, startdate):
+        total = 0
         for pack in self.tracker.packs.all():
           for channel in pack.channels.all():
             total += ParsedResult.objects.filter(query=self.tracker.query, channel=channel, date__gte=startdate).count()
         return total
 
-class PackStatistics(models.Model):
+class PackStatistics(models.Model, StatisticMethods):
     created_date = models.DateTimeField('creation date', auto_now_add=True)
     pack = models.ForeignKey(Pack, related_name='stats')
     stats = models.OneToOneField(Statistics, blank=True, null=True, related_name='pack')
@@ -270,15 +281,17 @@ class PackStatistics(models.Model):
     def __unicode__(self):
         return '%s' % self.pack
 
-    def count_stats(self):
-        if not self.stats:
-            stats = Statistics()
-            stats.save()
-            self.stats = stats
-        self.stats.daily_change = '5.55'
-        self.stats.save()
+    def get_tracker(self):
+        return self.trackerstats.tracker
 
-class ChannelStatistics(models.Model):
+    def count_total_mentions(self, startdate):
+        total = 0
+        for channel in self.pack.channels.all():
+          total += ParsedResult.objects.filter(query=self.get_tracker().query, channel=channel, date__gte=startdate).count()
+        return total
+
+
+class ChannelStatistics(models.Model, StatisticMethods):
     created_date = models.DateTimeField('creation date', auto_now_add=True)
     channel = models.ForeignKey(Channel, related_name='stats')
     stats = models.OneToOneField(Statistics, blank=True, null=True, related_name='channel')
@@ -292,12 +305,10 @@ class ChannelStatistics(models.Model):
     def __unicode__(self):
         return '%s' % self.channel
 
-    def count_stats(self):
-        if not self.stats:
-            stats = Statistics()
-            stats.save()
-            self.stats = stats
-        self.stats.daily_change = '2.34'
-        self.stats.save()
+    def get_tracker(self):
+        return self.packstats.trackerstats.tracker
 
+    def count_total_mentions(self, startdate):
+        total = ParsedResult.objects.filter(query=self.get_tracker().query, channel=self.channel, date__gte=startdate).count()
+        return total
 
