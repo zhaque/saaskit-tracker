@@ -194,7 +194,12 @@ def admin(request):
 @login_required
 def stats(request, stats_id=None):
     context_vars = dict()
-    context_vars['trend_stats'] = TrendStatistics.objects.all()
+    trend_stats = list(TrendStatistics.objects.all())
+    for ts in trend_stats[:]:
+        if ts.trend.muaccount != request.muaccount:
+            trend_stats.remove(ts)    
+    context_vars['trend_stats'] = trend_stats
+    
     if stats_id:
         context_vars['cur_stats'] = Statistics.objects.get(id=stats_id)
         if isinstance(context_vars['cur_stats'].owner, TrackerStatistics):
