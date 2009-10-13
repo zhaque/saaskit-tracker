@@ -201,7 +201,6 @@ class StatisticMethods:
         yesterday = self.count_total_mentions(datetime.now()-timedelta(days=2)) - today
         if 0 == yesterday:
             return None
-        print float(today-yesterday)/yesterday*100
         return '%s' % (float(today-yesterday)/yesterday*100)
         
     def count_daily_average(self):
