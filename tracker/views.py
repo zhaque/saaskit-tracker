@@ -202,10 +202,9 @@ def stats(request, stats_id=None):
     
     if stats_id:
         context_vars['cur_stats'] = Statistics.objects.get(id=stats_id)
+        context_vars['latest'] = context_vars['cur_stats'].owner.get_latest()
         if isinstance(context_vars['cur_stats'].owner, TrackerStatistics):
             tracker = context_vars['cur_stats'].owner.tracker
             context_vars['tracker'] = tracker
-        if isinstance(context_vars['cur_stats'].owner, ChannelStatistics) or isinstance(context_vars['cur_stats'].owner, PackStatistics) or isinstance(context_vars['cur_stats'].owner, TrackerStatistics):
-            context_vars['latest'] = context_vars['cur_stats'].owner.get_latest()
 
     return direct_to_template(request, template='stats.html', extra_context=context_vars)

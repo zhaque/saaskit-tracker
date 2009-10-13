@@ -2,6 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from datetime import datetime, timedelta
 from muaccounts.models import MUAccount
+from django.db.models import Q
 
 from livesearch.models import *
 from yql.search import *
@@ -244,7 +245,22 @@ class TrendStatistics(models.Model, StatisticMethods):
             for channel in pack.channels.all():
               total += ParsedResult.objects.filter(query=tracker.query, channel=channel, date__gte=startdate).count()
         return total
-    
+
+    def get_latest(self):
+        q_list = []
+        for tracker in self.trend.trackers.all():
+          channels = []
+          for pack in tracker.packs.all():
+              channels += list(pack.channels.all())
+          q_list.append(Q(query=tracker.query, channel__in=channels))
+        qs = Q()
+        for q in q_list:
+          print q
+          qs = qs | q
+        print qs
+        latest = ParsedResult.objects.filter(qs).order_by('-date')[:20]
+        return latest
+
 class TrackerStatistics(models.Model, StatisticMethods):
     created_date = models.DateTimeField('creation date', auto_now_add=True)
     tracker = models.ForeignKey(Tracker, related_name='stats')
