@@ -7,6 +7,7 @@ from django.http import HttpResponseRedirect
 from django.http import Http404
 from tracker.models import Tracker, Trend, Pack, TrendStatistics, TrackerStatistics, PackStatistics, ChannelStatistics, Statistics, ParsedResult
 from tracker.forms import TrackerForm, TrendForm
+from datetime import datetime, timedelta
 
 @login_required
 def index(request):
@@ -206,5 +207,18 @@ def stats(request, stats_id=None):
         if isinstance(context_vars['cur_stats'].owner, TrackerStatistics):
             tracker = context_vars['cur_stats'].owner.tracker
             context_vars['tracker'] = tracker
+        now = datetime.now()
+        days_from_start = (now - context_vars['cur_stats'].owner.get_startdate()).days
+        week_count = days_from_start/7
+        if days_from_start%7 > 0 or week_count == 0:
+            week_count += 1
+        print week_count
+        context_vars['dataset'] = []
+        for i in range(week_count):
+            start = now - timedelta(weeks=i+1)
+            finish = now - timedelta(weeks=i)
+            mentions = context_vars['cur_stats'].owner.count_total_mentions(start, finish)
+            print mentions
+            context_vars['dataset'].insert(0, mentions)
 
     return direct_to_template(request, template='stats.html', extra_context=context_vars)

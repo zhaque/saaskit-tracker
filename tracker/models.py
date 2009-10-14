@@ -186,6 +186,9 @@ class StatisticMethods:
     def get_tracker(self):
         pass
 
+    def get_startdate(self):
+        pass
+
     def count_stats(self):
         if not self.stats:
             stats = Statistics()
@@ -199,7 +202,7 @@ class StatisticMethods:
 
     def count_daily_change(self):
         today = self.count_total_24hours()
-        yesterday = self.count_total_mentions(datetime.now()-timedelta(days=2)) - today
+        yesterday = self.count_total_mentions(datetime.now()-timedelta(days=2), datetime.now()-timedelta(days=1))
         if 0 == yesterday:
             return None
         return '%s' % (float(today-yesterday)/yesterday*100)
@@ -207,16 +210,16 @@ class StatisticMethods:
     def count_daily_average(self):
         start = self.get_tracker().startdate
         delta = (datetime.now() - start).days + 1
-        total = self.count_total_mentions(start)
+        total = self.count_total_mentions(start, datetime.now())
         return total/delta
         
     def count_total_7days(self):
-        return self.count_total_mentions(datetime.now() - timedelta(days=7))
+        return self.count_total_mentions(datetime.now() - timedelta(days=7), datetime.now())
 
     def count_total_24hours(self):
-        return self.count_total_mentions(datetime.now() - timedelta(days=1))
+        return self.count_total_mentions(datetime.now() - timedelta(days=1), datetime.now())
 
-    def count_total_mentions(self, startdate):
+    def count_total_mentions(self, startdate, finishdate):
         total = 0
         return total
 
@@ -235,15 +238,25 @@ class TrendStatistics(models.Model, StatisticMethods):
     def __unicode__(self):
         return '%s' % self.trend
 
+    def get_startdate(self):
+        startdates = []
+        for tracker in self.trend.trackers.all():
+            startdates.append(tracker.startdate)
+        startdate = datetime.now()
+        for date in startdates:
+            if startdate > date:
+                startdate = date
+        return startdate
+
     def count_daily_average(self):
         return None
 
-    def count_total_mentions(self, startdate):
+    def count_total_mentions(self, startdate, finishdate):
         total = 0
         for tracker in self.trend.trackers.all():
           for pack in tracker.packs.all():
             for channel in pack.channels.all():
-              total += ParsedResult.objects.filter(query=tracker.query, channel=channel, date__gte=startdate).count()
+              total += ParsedResult.objects.filter(query=tracker.query, channel=channel, date__range=(startdate, finishdate)).count()
         return total
 
     def get_latest(self):
@@ -255,9 +268,7 @@ class TrendStatistics(models.Model, StatisticMethods):
           q_list.append(Q(query=tracker.query, channel__in=channels))
         qs = Q()
         for q in q_list:
-          print q
           qs = qs | q
-        print qs
         latest = ParsedResult.objects.filter(qs).order_by('-date')[:20]
         return latest
 
@@ -278,11 +289,14 @@ class TrackerStatistics(models.Model, StatisticMethods):
     def get_tracker(self):
         return self.tracker
 
-    def count_total_mentions(self, startdate):
+    def get_startdate(self):
+        return self.get_tracker().startdate
+
+    def count_total_mentions(self, startdate, finishdate):
         total = 0
         for pack in self.tracker.packs.all():
           for channel in pack.channels.all():
-            total += ParsedResult.objects.filter(query=self.tracker.query, channel=channel, date__gte=startdate).count()
+            total += ParsedResult.objects.filter(query=self.tracker.query, channel=channel, date__range=(startdate, finishdate)).count()
         return total
 
     def get_latest(self):
@@ -309,10 +323,13 @@ class PackStatistics(models.Model, StatisticMethods):
     def get_tracker(self):
         return self.trackerstats.tracker
 
-    def count_total_mentions(self, startdate):
+    def get_startdate(self):
+        return self.get_tracker().startdate
+
+    def count_total_mentions(self, startdate, finishdate):
         total = 0
         for channel in self.pack.channels.all():
-          total += ParsedResult.objects.filter(query=self.get_tracker().query, channel=channel, date__gte=startdate).count()
+          total += ParsedResult.objects.filter(query=self.get_tracker().query, channel=channel, date__range=(startdate, finishdate)).count()
         return total
 
     def get_latest(self):
@@ -337,8 +354,11 @@ class ChannelStatistics(models.Model, StatisticMethods):
     def get_tracker(self):
         return self.packstats.trackerstats.tracker
 
-    def count_total_mentions(self, startdate):
-        total = ParsedResult.objects.filter(query=self.get_tracker().query, channel=self.channel, date__gte=startdate).count()
+    def get_startdate(self):
+        return self.get_tracker().startdate
+
+    def count_total_mentions(self, startdate, finishdate):
+        total = ParsedResult.objects.filter(query=self.get_tracker().query, channel=self.channel, date__range=(startdate, finishdate)).count()
         return total
 
     def get_latest(self):

@@ -1,4 +1,5 @@
 {% extends "main.html" %}
+{% load charts %}
 
 {% block body %}
 {% if trend_stats %}
@@ -62,6 +63,16 @@
 <p>Total 7 days: {{ cur_stats.total_7days }}</p>
 <p>Daily average: {{ cur_stats.daily_average }}</p>
 <p>Most active: {{ cur_stats.most_active_source }}</p>
+{% endif %}
+
+{% if dataset %}
+<h3>Chart for {{ cur_stats }}</h3>
+{% chart VerticalBarStack dataset  %}
+    {% color 00cc00 %}
+    {% marker 'N*' 'black' 0 -1 11 %}
+    {% bar 30 5 %}
+    {% axes type xy  %}
+{% endchart %} 
 {% endif %}
 
 {% if latest %}
