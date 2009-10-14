@@ -8,6 +8,9 @@ from django.http import Http404
 from tracker.models import Tracker, Trend, Pack, TrendStatistics, TrackerStatistics, PackStatistics, ChannelStatistics, Statistics, ParsedResult
 from tracker.forms import TrackerForm, TrendForm
 from datetime import datetime, timedelta
+from django.template.defaultfilters import slugify
+from scratchpad.models import Scratchpad, Item
+from todo.models import List as TodoList
 
 @login_required
 def index(request):
@@ -28,6 +31,19 @@ def add(request):
             tracker.muaccount = request.muaccount
             tracker.save()
             form.save_m2m()
+
+            spad = Scratchpad()
+            spad.title = tracker.name
+            spad.account = request.muaccount
+            spad.author = request.user
+            todo = TodoList()
+            todo.name = spad.title
+            todo.slug = slugify(spad.title)
+            todo.account = request.muaccount
+            todo.save()
+            spad.tasks_list = todo
+            spad.save()
+
             return HttpResponseRedirect(reverse('tracker_advanced_query', args=[tracker.id]))
     context_vars['form'] = form
     return direct_to_template(request, template='tracker/form.html', extra_context=context_vars)
@@ -218,5 +234,29 @@ def stats(request, stats_id=None):
             finish = now - timedelta(weeks=i)
             mentions = context_vars['cur_stats'].owner.count_total_mentions(start, finish)
             context_vars['dataset'].insert(0, mentions)
+            
+        if request.method == 'POST':
+            tracker = context_vars['cur_stats'].owner.get_tracker()
+            try:
+              spad = Scratchpad.objects.get(title=tracker.name, account=request.muaccount)
+            except ObjectDoesNotExist:
+              spad = Scratchpad()
+              spad.title = tracker.name
+              spad.account = request.muaccount
+              spad.author = request.user
+              todo = TodoList()
+              todo.name = spad.title
+              todo.slug = slugify(spad.title)
+              todo.account = request.muaccount
+              todo.save()
+              spad.tasks_list = todo
+              spad.save()
+            item = Item()
+            item.scratchpad = spad
+            item.notes = 'Hello world'
+            item.title = 'Saved results'
+            item.author = request.user
+            item.save()
+            return HttpResponseRedirect(reverse('scratchpad-scratchpad_view',args=[spad.id]))
 
     return direct_to_template(request, template='stats.html', extra_context=context_vars)
