@@ -212,13 +212,11 @@ def stats(request, stats_id=None):
         week_count = days_from_start/7
         if days_from_start%7 > 0 or week_count == 0:
             week_count += 1
-        print week_count
         context_vars['dataset'] = []
         for i in range(week_count):
             start = now - timedelta(weeks=i+1)
             finish = now - timedelta(weeks=i)
             mentions = context_vars['cur_stats'].owner.count_total_mentions(start, finish)
-            print mentions
             context_vars['dataset'].insert(0, mentions)
 
     return direct_to_template(request, template='stats.html', extra_context=context_vars)
