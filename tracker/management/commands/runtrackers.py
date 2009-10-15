@@ -6,6 +6,8 @@ from livesearch.models import *
 from yql.search import *
 import simplejson as json
 from datetime import datetime
+import pysolr
+import settings
 
 class Command(LabelCommand):
     help = 'Runs trackers.'
@@ -157,6 +159,10 @@ class Command(LabelCommand):
         RawResult.objects.all().delete()
 
     def index(self):
+        self.stats()
+        self.sorl()
+
+    def stats(self):
         trends = Trend.objects.all()
         for trend in trends:
             try:
@@ -199,8 +205,40 @@ class Command(LabelCommand):
                 tracker_stats.save()
             trend_stats.count_stats()
             trend_stats.save()
-            
-#            ParsedResult.objects.all().delete()
 
-
+    def sorl(self):
+        results = ParsedResult.objects.all()
+        conn = pysolr.Solr(settings.SOLR_URL)
+        docs = []
+        for res in results:
+            packs = []
+            trackers = []
+            trends = []
+            for pack in res.channel.packs.all():
+                packs.append(pack.name)
+                for tracker in pack.trackers.all():
+                    trackers.append(tracker.name)
+                    for trend in tracker.trends.all():
+                        trends.append(trend.name)
+            map = {
+              'url': res.url,
+              'query': res.query,
+              'channel': res.channel.name,
+              'packs': packs,
+              'tracker': trackers,
+              'trends': trends,
+              'total': res.total,
+              'title': res.title if res.title else '',
+              'text': res.text if res.text else '',
+              'source': res.source if res.source else '',
+              'thumb': res.thumb if res.thumb else '',
+            }
+            if res.date:
+                map.update({'date': res.date})
+            if res.createddate:
+                map.update({'createddate': res.createddate})
+            if res.purgedate:
+                map.update({'purgedate': res.purgedate})
+            docs.append(map)
+        conn.add(docs)
 
