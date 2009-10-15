@@ -12,6 +12,21 @@ from django.template.defaultfilters import slugify
 from scratchpad.models import Scratchpad, Item
 from todo.models import List as TodoList
 
+def create_scratchpad(title, muaccount, user, create_tasks=True):
+    spad = Scratchpad()
+    spad.title = title
+    spad.account = muaccount
+    spad.author = user
+    if create_tasks:
+        todo = TodoList()
+        todo.name = spad.title
+        todo.slug = slugify(spad.title)
+        todo.account = spad.account
+        todo.save()
+        spad.tasks_list = todo
+    spad.save()
+    return spad
+
 @login_required
 def index(request):
     context_vars = dict()
@@ -32,17 +47,11 @@ def add(request):
             tracker.save()
             form.save_m2m()
 
-            spad = Scratchpad()
-            spad.title = tracker.name
-            spad.account = request.muaccount
-            spad.author = request.user
-            todo = TodoList()
-            todo.name = spad.title
-            todo.slug = slugify(spad.title)
-            todo.account = request.muaccount
-            todo.save()
-            spad.tasks_list = todo
-            spad.save()
+            if not request.muaccount.owner.quotas.scratchpad_nothing:
+                create_tasks = False
+                if request.muaccount.owner.quotas.scratchpad_full:
+                    create_tasks = True
+                create_scratchpad(tracker.name, request.muaccount, request.user, create_tasks)
 
             return HttpResponseRedirect(reverse('tracker_advanced_query', args=[tracker.id]))
     context_vars['form'] = form
@@ -240,17 +249,12 @@ def stats(request, stats_id=None):
             try:
               spad = Scratchpad.objects.get(title=tracker.name, account=request.muaccount)
             except ObjectDoesNotExist:
-              spad = Scratchpad()
-              spad.title = tracker.name
-              spad.account = request.muaccount
-              spad.author = request.user
-              todo = TodoList()
-              todo.name = spad.title
-              todo.slug = slugify(spad.title)
-              todo.account = request.muaccount
-              todo.save()
-              spad.tasks_list = todo
-              spad.save()
+                if request.muaccount.owner.quotas.scratchpad_nothing:
+                    return HttpResponseRedirect(reverse('scratchpad-not-available'))
+                create_tasks = False
+                if request.muaccount.owner.quotas.scratchpad_full:
+                    create_tasks = True
+                spad = create_scratchpad(tracker.name, request.muaccount, request.user, create_tasks)
             item = Item()
             item.scratchpad = spad
             item.notes = 'Hello world'
