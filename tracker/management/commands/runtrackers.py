@@ -11,12 +11,13 @@ import settings
 
 class Command(LabelCommand):
     help = 'Runs trackers.'
-    args = 'inject,fetch,parse,index'
-    label = 'inject,fetch,parse,index'
+    args = 'inject,fetch,parse,stats,index'
+    label = 'inject,fetch,parse,stats,index'
 
     INJECT = 'inject'
     FETCH = 'fetch'
     PARSE = 'parse'
+    STATS = 'stats'
     INDEX = 'index'
     
     def handle_label(self, label, **options):
@@ -26,8 +27,10 @@ class Command(LabelCommand):
             self.fetch()
         elif self.PARSE == label:
             self.parse()
+        elif self.STATS == label:
+            self.stats()
         elif self.INDEX == label:
-            self.index()
+            self.sorl()
         else:
             print 'Valid arguments are %s' % self.args
 
@@ -81,7 +84,6 @@ class Command(LabelCommand):
         res.url = url
         return res
     
-
     def parse(self):
         raw_results = RawResult.objects.all()
         for raw_result in raw_results:
@@ -157,10 +159,6 @@ class Command(LabelCommand):
                     res.thumb = result['StaticThumbnail']['Url']
                     res.save()
         RawResult.objects.all().delete()
-
-    def index(self):
-        self.stats()
-        self.sorl()
 
     def stats(self):
         trends = Trend.objects.all()
