@@ -68,6 +68,8 @@ class Tracker(models.Model):
     counter = models.PositiveIntegerField('run counter', default=0)
     description = models.TextField(blank=True, null=True)
     lang = models.CharField(max_length=5, choices = AdvancedSearch.MARKETS, blank=True, null=True)
+    location = models.CharField(max_length=255, blank=True, null=True)
+    radius = models.PositiveIntegerField(max_length=255, blank=True, null=True)
 
     def __unicode__(self):
         return self.name

@@ -86,7 +86,6 @@ def advanced_query(request, tracker_id):
         values['from'] = request.POST.get('from', '')
         values['to'] = request.POST.get('to', '')
         values['ref'] = request.POST.get('ref', '')
-        values['near'] = request.POST.get('near', '')
         values['pos_tude'] = request.POST.get('pos_tude', '')
         values['neg_tude'] = request.POST.get('neg_tude', '')
         values['q_tude'] = request.POST.get('q_tude', '')
@@ -117,12 +116,6 @@ def advanced_query(request, tracker_id):
             query += ' to:%s' % values['to']
         if values['ref']:
             query += ' @%s' % values['ref']
-        if values['near']:
-            words = values['near'].split()
-            if len(words) > 1:
-                query += ' near:\"%s\"' % values['near']
-            else:
-                query += ' near:%s' % values['near']
         if values['pos_tude']:
             query += ' ' + values['pos_tude']
         if values['neg_tude']:
