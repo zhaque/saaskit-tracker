@@ -53,6 +53,14 @@ class Tracker(models.Model):
         (FINISHED,'Finished'),
 #        (DISABLED,'Disabled'),
     )
+    DISTANCE = (
+        (5,'5'),
+        (10,'10'),
+        (50,'50'),
+        (75,'75'),
+        (150,'150'),
+        (250,'250'),
+    )
     
     name = models.CharField('name', max_length=255)
     status = models.DecimalField('status', choices = STATUSES, max_digits=1, decimal_places=0)
@@ -67,9 +75,9 @@ class Tracker(models.Model):
     muaccount = models.ForeignKey(MUAccount, related_name='trackers')
     counter = models.PositiveIntegerField('run counter', default=0)
     description = models.TextField(blank=True, null=True)
-    lang = models.CharField(max_length=5, choices = AdvancedSearch.MARKETS, blank=True, null=True)
+    lang = models.CharField(max_length=5, choices = AdvancedSearch.MARKETS, default='en-US')
     location = models.CharField(max_length=255, blank=True, null=True)
-    radius = models.PositiveIntegerField(max_length=255, blank=True, null=True)
+    radius = models.PositiveIntegerField('Radius (miles)', max_length=255, blank=True, null=True, choices = DISTANCE)
 
     def __unicode__(self):
         return self.name
@@ -130,6 +138,9 @@ class Query(models.Model):
     createddate = models.DateTimeField('creation date', auto_now_add=True)
     laststarted = models.DateTimeField('last started date', blank=True, null=True)
     lang = models.CharField(max_length=5, choices = AdvancedSearch.MARKETS, blank=True, null=True)
+    lon = models.FloatField(blank=True, null=True)
+    lat = models.FloatField(blank=True, null=True)
+    radius = models.PositiveIntegerField(max_length=255, blank=True, null=True)
 #    nextstartdate
 #    skipstarts
     
@@ -145,6 +156,9 @@ class RawResult(models.Model):
     channel = models.ForeignKey(Channel, related_name="raw_results")
     createddate = models.DateTimeField('creation date', auto_now_add=True)
     lang = models.CharField(max_length=5, choices = AdvancedSearch.MARKETS, blank=True, null=True)
+    lon = models.FloatField(blank=True, null=True)
+    lat = models.FloatField(blank=True, null=True)
+    radius = models.PositiveIntegerField(max_length=255, blank=True, null=True)
 
 class ParsedResult(models.Model):
     query = models.CharField('query string', max_length=255)
@@ -159,6 +173,9 @@ class ParsedResult(models.Model):
     createddate = models.DateTimeField('creation date', auto_now_add=True)
     purgedate = models.DateTimeField('purge date', blank=True, null=True)
     lang = models.CharField(max_length=5, choices = AdvancedSearch.MARKETS, blank=True, null=True)
+    lon = models.FloatField(blank=True, null=True)
+    lat = models.FloatField(blank=True, null=True)
+    radius = models.PositiveIntegerField(max_length=255, blank=True, null=True)
 
 # statistics is tree-like with trends as roots,
 #trend1 - tracker1 - pack1 - channel1

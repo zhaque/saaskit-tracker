@@ -71,6 +71,7 @@
     is_public: 0
     muaccount: 2
     counter: 0
+    lang: en-US
 - model: tracker.Tracker
   pk: 2
   fields:
@@ -81,6 +82,7 @@
     is_public: 0
     muaccount: 2
     counter: 0
+    lang: en-US
 - model: tracker.Tracker
   pk: 3
   fields:
@@ -91,6 +93,7 @@
     is_public: 0
     muaccount: 2
     counter: 0
+    lang: en-US
 - model: tracker.Tracker
   pk: 4
   fields:
@@ -101,6 +104,7 @@
     is_public: 0
     muaccount: 1
     counter: 0
+    lang: en-US
 - model: tracker.Tracker
   pk: 5
   fields:
@@ -111,6 +115,7 @@
     is_public: 0
     muaccount: 3
     counter: 0
+    lang: en-US
 - model: tracker.Trend
   pk: 1
   fields:

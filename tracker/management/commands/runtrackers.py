@@ -46,17 +46,27 @@ class Command(LabelCommand):
             tracker.save()
             for pack in tracker.packs.all():
               for channel in pack.channels.all():
-                  try:
-                      if tracker.lang:
-                          q = Query.objects.get(query = tracker.query, channel=channel, lang=tracker.lang)
-                      else:
-                          q = Query.objects.get(query = tracker.query, channel=channel, lang__isnull=True)
-                  except ObjectDoesNotExist:
-                      q = Query()
-                      q.query = tracker.query
-                      q.channel = channel
-                      q.lang = tracker.lang
-                      q.save()
+                  q = Query()
+                  q.query = tracker.query
+                  q.channel = channel
+                  q.lang = tracker.lang
+                  if tracker.location:
+                      (lon,lat) = tracker.location.split()
+                      q.lon = lon
+                      q.lat = lat
+                  q.radius = tracker.radius
+                  q.save()
+#                  try:
+#                      if tracker.lang:
+#                          q = Query.objects.get(query = tracker.query, channel=channel, lang=tracker.lang)
+#                      else:
+#                          q = Query.objects.get(query = tracker.query, channel=channel, lang__isnull=True)
+#                  except ObjectDoesNotExist:
+#                      q = Query()
+#                      q.query = tracker.query
+#                      q.channel = channel
+#                      q.lang = tracker.lang
+#                      q.save()
             tracker.counter += 1
             tracker.status = Tracker.FINISHED
             tracker.save()
@@ -75,6 +85,10 @@ class Command(LabelCommand):
             res.query = query.query
             res.result = json.dumps(result)
             res.channel = query.channel
+            res.lang = query.lang
+            res.lon = query.lon
+            res.lat = query.lat
+            res.radius = query.radius
             res.save()
         Query.objects.all().delete()
         finished_trackers = Tracker.objects.filter(status=Tracker.FINISHED)
@@ -110,6 +124,9 @@ class Command(LabelCommand):
                     res.source = result['from_user'] 
                     res.thumb = result['profile_image_url']
                     res.lang = result['iso_language_code'] if 'iso_language_code' in result else raw_result.lang
+                    res.lon = raw_result.lon
+                    res.lat = raw_result.lat
+                    res.radius = raw_result.radius
                     res.save()
             if 'web' in results:
                 total = results['web']['Total']
@@ -124,6 +141,9 @@ class Command(LabelCommand):
                     res.text = result['Description'] if 'Description' in result else None
                     res.date = datetime.strptime(result['DateTime'], '%Y-%m-%dT%H:%M:%SZ')
                     res.lang = raw_result.lang
+                    res.lon = raw_result.lon
+                    res.lat = raw_result.lat
+                    res.radius = raw_result.radius
                     res.save()
             if 'news' in results:
                 total = results['news']['Total']
@@ -139,6 +159,9 @@ class Command(LabelCommand):
                     res.date = datetime.strptime(result['Date'], '%Y-%m-%dT%H:%M:%SZ')
                     res.source = result['Source'] 
                     res.lang = raw_result.lang
+                    res.lon = raw_result.lon
+                    res.lat = raw_result.lat
+                    res.radius = raw_result.radius
                     res.save()
             if 'images' in results:
                 total = results['images']['Total']
@@ -153,6 +176,9 @@ class Command(LabelCommand):
                     res.text = result['Title']
                     res.thumb = result['Thumbnail']['Url']
                     res.lang = raw_result.lang
+                    res.lon = raw_result.lon
+                    res.lat = raw_result.lat
+                    res.radius = raw_result.radius
                     res.save()
             if 'video' in results:
                 total = results['video']['Total']
@@ -168,6 +194,9 @@ class Command(LabelCommand):
                     res.source = result['SourceTitle'] if 'SourceTitle' in result else None
                     res.thumb = result['StaticThumbnail']['Url']
                     res.lang = raw_result.lang
+                    res.lon = raw_result.lon
+                    res.lat = raw_result.lat
+                    res.radius = raw_result.radius
                     res.save()
         RawResult.objects.all().delete()
 
@@ -250,6 +279,12 @@ class Command(LabelCommand):
                 map.update({'createddate': res.createddate})
             if res.purgedate:
                 map.update({'purgedate': res.purgedate})
+            if res.lon:
+                map.update({'lon': res.lon})
+            if res.lat:
+                map.update({'lat': res.lat})
+            if res.radius:
+                map.update({'radius': res.radius})
             docs.append(map)
         conn.add(docs)
 

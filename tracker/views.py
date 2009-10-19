@@ -34,6 +34,13 @@ def index(request):
     context_vars['trackers'] = Tracker.objects.filter(muaccount = request.muaccount)
     return direct_to_template(request, template='tracker/index.html', extra_context=context_vars)
     
+from settings import YAHOOID
+from geopy import geocoders
+def geocode(location):
+    y = geocoders.Yahoo(YAHOOID)
+    place, (lat, lon) = y.geocode(location)
+    return '%s %s' % (lon, lat)
+
 @login_required
 def add(request):
     context_vars = dict()
@@ -45,6 +52,7 @@ def add(request):
             tracker = form.save(commit=False)
             tracker.status = Tracker.PENDING
             tracker.muaccount = request.muaccount
+            tracker.location = geocode(tracker.location)
             tracker.save()
             form.save_m2m()
 
