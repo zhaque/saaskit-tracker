@@ -226,9 +226,10 @@ class Command(LabelCommand):
             for pack in res.channel.packs.all():
                 packs.append(pack.name)
                 for tracker in pack.trackers.all():
-                    trackers.append(tracker.name)
-                    for trend in tracker.trends.all():
-                        trends.append(trend.name)
+                    if tracker.query == res.query:
+                        trackers.append(tracker.name)
+                        for trend in tracker.trends.all():
+                            trends.append(trend.name)
             map = {
               'url': res.url,
               'query': res.query,
