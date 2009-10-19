@@ -47,11 +47,15 @@ class Command(LabelCommand):
             for pack in tracker.packs.all():
               for channel in pack.channels.all():
                   try:
-                      q = Query.objects.get(query = tracker.query, channel=channel)
+                      if tracker.lang:
+                          q = Query.objects.get(query = tracker.query, channel=channel, lang=tracker.lang)
+                      else:
+                          q = Query.objects.get(query = tracker.query, channel=channel, lang__isnull=True)
                   except ObjectDoesNotExist:
                       q = Query()
                       q.query = tracker.query
                       q.channel = channel
+                      q.lang = tracker.lang
                       q.save()
             tracker.counter += 1
             tracker.status = Tracker.FINISHED
@@ -64,6 +68,8 @@ class Command(LabelCommand):
             api = api_class()
             if issubclass(api_class, PipeSearch):
                 api.init_options()
+                if query.lang:
+                    api.set_market(query.lang)
             result = api.fetch(query.query)
             res = RawResult()
             res.query = query.query
@@ -103,6 +109,7 @@ class Command(LabelCommand):
                     res.date = datetime.strptime(result['created_at'][:-6], '%a, %d %b %Y %H:%M:%S')
                     res.source = result['from_user'] 
                     res.thumb = result['profile_image_url']
+                    res.lang = result['iso_language_code'] if 'iso_language_code' in result else raw_result.lang
                     res.save()
             if 'web' in results:
                 total = results['web']['Total']
@@ -116,6 +123,7 @@ class Command(LabelCommand):
                     res.title = result['Title'] 
                     res.text = result['Description'] if 'Description' in result else None
                     res.date = datetime.strptime(result['DateTime'], '%Y-%m-%dT%H:%M:%SZ')
+                    res.lang = raw_result.lang
                     res.save()
             if 'news' in results:
                 total = results['news']['Total']
@@ -130,6 +138,7 @@ class Command(LabelCommand):
                     res.text = result['Snippet']
                     res.date = datetime.strptime(result['Date'], '%Y-%m-%dT%H:%M:%SZ')
                     res.source = result['Source'] 
+                    res.lang = raw_result.lang
                     res.save()
             if 'images' in results:
                 total = results['images']['Total']
@@ -143,6 +152,7 @@ class Command(LabelCommand):
                     res.title = result['Title']
                     res.text = result['Title']
                     res.thumb = result['Thumbnail']['Url']
+                    res.lang = raw_result.lang
                     res.save()
             if 'video' in results:
                 total = results['video']['Total']
@@ -157,6 +167,7 @@ class Command(LabelCommand):
                     res.text = result['Title']
                     res.source = result['SourceTitle'] if 'SourceTitle' in result else None
                     res.thumb = result['StaticThumbnail']['Url']
+                    res.lang = raw_result.lang
                     res.save()
         RawResult.objects.all().delete()
 
@@ -230,6 +241,7 @@ class Command(LabelCommand):
               'text': res.text if res.text else '',
               'source': res.source if res.source else '',
               'thumb': res.thumb if res.thumb else '',
+              'lang': res.lang if res.lang else '',
             }
             if res.date:
                 map.update({'date': res.date})

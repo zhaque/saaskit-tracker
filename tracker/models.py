@@ -3,6 +3,7 @@ from django.db import models
 from datetime import datetime, timedelta
 from muaccounts.models import MUAccount
 from django.db.models import Q
+import simplejson as json
 
 from livesearch.models import *
 from yql.search import *
@@ -66,6 +67,7 @@ class Tracker(models.Model):
     muaccount = models.ForeignKey(MUAccount, related_name='trackers')
     counter = models.PositiveIntegerField('run counter', default=0)
     description = models.TextField(blank=True, null=True)
+    lang = models.CharField(max_length=5, choices = AdvancedSearch.MARKETS, blank=True, null=True)
 
     def __unicode__(self):
         return self.name
@@ -81,7 +83,7 @@ class Tracker(models.Model):
         self.save()
         self.do_query()
         self.counter += 1
-        self.status = self.FINISHED
+        self.status = self.PENDING
         self.save()
 
 #    def disable(self):
@@ -93,13 +95,21 @@ class Tracker(models.Model):
         self.save()
 
     def do_query(self):
-        for channel in self.pack.channels.all():
-            api_class = globals()[channel.api]
-            api = api_class()
-            if issubclass(api_class, PipeSearch):
-                api.init_options()
-            result = api.raw_fetch(self.query)
-            #save result to db
+        for pack in self.packs.all():
+            for channel in pack.channels.all():
+                api_class = globals()[channel.api]
+                api = api_class()
+                if issubclass(api_class, PipeSearch):
+                    api.init_options()
+                    if self.lang:
+                        api.set_market(self.lang)
+                result = api.fetch(self.query)
+                res = RawResult()
+                res.query = self.query
+                res.result = json.dumps(result)
+                res.channel = channel
+                res.lang = self.lang
+                res.save()
 
 class Trend(models.Model):
     """Tracker groups"""
@@ -117,11 +127,12 @@ class Query(models.Model):
     channel = models.ForeignKey(Channel, related_name='queries')
     createddate = models.DateTimeField('creation date', auto_now_add=True)
     laststarted = models.DateTimeField('last started date', blank=True, null=True)
+    lang = models.CharField(max_length=5, choices = AdvancedSearch.MARKETS, blank=True, null=True)
 #    nextstartdate
 #    skipstarts
     
     class Meta:
-        unique_together = ('query','channel')
+        pass
 
     def __unicode__(self):
         return '%s in %s' % (self.query, self.channel)
@@ -131,6 +142,7 @@ class RawResult(models.Model):
     result = models.TextField()
     channel = models.ForeignKey(Channel, related_name="raw_results")
     createddate = models.DateTimeField('creation date', auto_now_add=True)
+    lang = models.CharField(max_length=5, choices = AdvancedSearch.MARKETS, blank=True, null=True)
 
 class ParsedResult(models.Model):
     query = models.CharField('query string', max_length=255)
@@ -144,6 +156,7 @@ class ParsedResult(models.Model):
     thumb = models.URLField(blank=True, null=True) #any image/video url
     createddate = models.DateTimeField('creation date', auto_now_add=True)
     purgedate = models.DateTimeField('purge date', blank=True, null=True)
+    lang = models.CharField(max_length=5, choices = AdvancedSearch.MARKETS, blank=True, null=True)
 
 # statistics is tree-like with trends as roots,
 #trend1 - tracker1 - pack1 - channel1

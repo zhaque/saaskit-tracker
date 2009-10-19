@@ -11,6 +11,12 @@
     	<tr><th></th><td>Any of these words</td><td><input id="ors" name="ors" type="text" value="{{ values.ors }}"/></td></tr>
     	<tr><th></th><td>None of these words</td><td><input id="nots" name="nots" type="text" value="{{ values.nots }}"/></td></tr>
     	<tr><th></th><td>This URL</td><td><input id="url" name="url" type="text" value="{{ values.url }}"/></td></tr>
+    	<tr><th></th><td>Language</td><td><select id="lang" name="lang"/>
+    	  <option value="" {% if not values.lang %}selected="selected"{% endif %}>---------</option>
+    	{% for lang in langs %}
+    	  <option value="{{ lang.0 }}" {% ifequal values.lang lang.0 %}selected="selected"{% endifequal %}>{{ lang.1 }}</option>
+    	{% endfor %}
+    	</select></td></tr>
     	{% if pack_has_twitter %}
     	<tr><td colspan="3" class="sep"></td></tr>	
     	<tr><th>People</th><td>From this person</td><td><input id="from" name="from" type="text" value="{{ values.from }}"/></td></tr>
