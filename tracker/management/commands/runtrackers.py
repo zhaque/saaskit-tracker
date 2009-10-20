@@ -11,22 +11,22 @@ import settings
 
 class Command(LabelCommand):
     help = 'Runs trackers.'
-    args = 'inject,fetch,parse,stats,index'
-    label = 'inject,fetch,parse,stats,index'
+    args = 'fetch,stats,index'
+    label = 'fetch,stats,index'
 
-    INJECT = 'inject'
+#    INJECT = 'inject'
     FETCH = 'fetch'
-    PARSE = 'parse'
+#    PARSE = 'parse'
     STATS = 'stats'
     INDEX = 'index'
     
     def handle_label(self, label, **options):
-        if self.INJECT == label:
-            self.inject()
-        elif self.FETCH == label:
+#        if self.INJECT == label:
+#            self.inject()
+        if self.FETCH == label:
             self.fetch()
-        elif self.PARSE == label:
-            self.parse()
+#        elif self.PARSE == label:
+#            self.parse()
         elif self.STATS == label:
             self.stats()
         elif self.INDEX == label:
@@ -72,29 +72,33 @@ class Command(LabelCommand):
             tracker.save()
 
     def fetch(self):
-        queries = Query.objects.all()
-        for query in queries:
-            api_class = globals()[query.channel.api]
-            api = api_class()
-            if issubclass(api_class, PipeSearch):
-                api.init_options()
-                if query.lang:
-                    api.set_market(query.lang)
-            result = api.fetch(query.query)
-            res = RawResult()
-            res.query = query.query
-            res.result = json.dumps(result)
-            res.channel = query.channel
-            res.lang = query.lang
-            res.lon = query.lon
-            res.lat = query.lat
-            res.radius = query.radius
-            res.save()
-        Query.objects.all().delete()
-        finished_trackers = Tracker.objects.filter(status=Tracker.FINISHED)
-        for tracker in finished_trackers:
-            tracker.status = Tracker.PENDING
-            tracker.save()
+        pending_trackers = Tracker.objects.filter(status=Tracker.PENDING)
+        for tracker in pending_trackers:
+            tracker.run()
+#        queries = Query.objects.all()
+#        for query in queries:
+#            api_class = globals()[query.channel.api]
+#            api = api_class()
+#            if issubclass(api_class, PipeSearch):
+#                api.init_options()
+#                api.set_count(100)
+#                if query.lang:
+#                    api.set_market(query.lang)
+#            result = api.fetch(query.query)
+#            res = RawResult()
+#            res.query = query.query
+#            res.result = json.dumps(result)
+#            res.channel = query.channel
+#            res.lang = query.lang
+#            res.lon = query.lon
+#            res.lat = query.lat
+#            res.radius = query.radius
+#            res.save()
+#        Query.objects.all().delete()
+#        finished_trackers = Tracker.objects.filter(status=Tracker.FINISHED)
+#        for tracker in finished_trackers:
+#            tracker.status = Tracker.PENDING
+#            tracker.save()
 
     def get_or_create_parsedres(self, url):
         try:

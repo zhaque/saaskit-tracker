@@ -61,6 +61,8 @@ class Tracker(models.Model):
         (150,'150'),
         (250,'250'),
     )
+    MAXCOUNT = 200
+    REQUESTCOUNT = 100
     
     name = models.CharField('name', max_length=255)
     status = models.DecimalField('status', choices = STATUSES, max_digits=1, decimal_places=0)
@@ -109,18 +111,164 @@ class Tracker(models.Model):
             for channel in pack.channels.all():
                 api_class = globals()[channel.api]
                 api = api_class()
+                total = self.MAXCOUNT
+                count = self.REQUESTCOUNT
+                offset = 0
                 if issubclass(api_class, PipeSearch):
                     api.init_options()
+                    api.set_count(count)
+                    api.set_offset(offset)
                     if self.lang:
                         api.set_market(self.lang)
-                result = api.fetch(self.query)
-                res = RawResult()
-                res.query = self.query
-                res.result = json.dumps(result)
-                res.channel = channel
-                res.lang = self.lang
-                res.save()
+                    try:
+                        latest_result_date = ParsedResult.objects.filter(channel=channel, query=self.query).latest().date
+                    except ObjectDoesNotExist:
+                        latest_result_date = datetime.now() - timedelta(days=365)
+                    latest_date = datetime.now()
+                    while self.MAXCOUNT > offset:
+                        if offset >= total or latest_date < latest_result_date:
+                            break
+                        api.set_count(count)
+                        api.set_offset(offset)
+                        result = api.fetch(self.query)
+                        (total, count, latest_date) = self.parse_result(result, channel)
+                        offset += count
+                elif issubclass(api_class, YqlSearch):
+                    pass
+#                    result = api.fetch(self.query)
+#                    count = self.parse_result(result, channel)
+#                res = RawResult()
+#                res.query = self.query
+#                res.result = json.dumps(result)
+#                res.channel = channel
+#                res.lang = self.lang
+#                res.save()
 
+    def get_or_create_parsedres(self, url):
+        try:
+            res = ParsedResult.objects.get(url=url)
+        except ObjectDoesNotExist:
+            res = ParsedResult()
+        res.url = url
+        return res
+
+    def parse_result(self, results, channel):
+        if self.location:
+            (lon,lat) = self.location.split()
+        count = 0
+        latest_date = None
+        if 'twitter' in results:
+            results = results['twitter']
+            total = self.MAXCOUNT
+            count = len(results)
+            for result in results:
+                url = 'http://twitter.com/%s/statuses/%s' % (result['from_user'], result['id'])
+                res = self.get_or_create_parsedres(url)
+                res.query = self.query
+                res.channel = channel
+                res.total = total
+                res.title = result['text'] 
+                res.text = result['text']
+#                res.date = datetime.strptime(result['created_at'], '%a, %d %b %Y %H:%M:%S %z')
+                res.date = datetime.strptime(result['created_at'][:-6], '%a, %d %b %Y %H:%M:%S')
+                res.source = result['from_user'] 
+                res.thumb = result['profile_image_url']
+                res.lang = result['iso_language_code'] if 'iso_language_code' in result else self.lang
+                if self.location:
+                    res.lon = lon
+                    res.lat = lat
+                if self.radius:
+                    res.radius = self.radius
+                res.save()
+                latest_date = res.date
+        if 'web' in results:
+            total = results['web']['Total']
+            results = results['web']['Results']
+            count = len(results)
+            for result in results:
+                url = result['Url']
+                res = self.get_or_create_parsedres(url)
+                res.channel = channel
+                res.query = self.query
+                res.total = total
+                res.title = result['Title'] 
+                res.text = result['Description'] if 'Description' in result else None
+                res.date = datetime.strptime(result['DateTime'], '%Y-%m-%dT%H:%M:%SZ')
+                res.lang = self.lang
+                if self.location:
+                    res.lon = lon
+                    res.lat = lat
+                if self.radius:
+                    res.radius = self.radius
+                res.save()
+                latest_date = res.date
+        if 'news' in results:
+            total = results['news']['Total']
+            results = results['news']['Results']
+            count = len(results)
+            for result in results:
+                url = result['Url']
+                res = self.get_or_create_parsedres(url)
+                res.channel = channel
+                res.query = self.query
+                res.total = total
+                res.title = result['Title'] 
+                res.text = result['Snippet']
+                res.date = datetime.strptime(result['Date'], '%Y-%m-%dT%H:%M:%SZ')
+                res.source = result['Source'] 
+                res.lang = self.lang
+                if self.location:
+                    res.lon = lon
+                    res.lat = lat
+                if self.radius:
+                    res.radius = self.radius
+                res.save()
+                latest_date = res.date
+        if 'images' in results:
+            total = results['images']['Total']
+            results = results['images']['Results']
+            count = len(results)
+            for result in results:
+                url = result['Url']
+                res = self.get_or_create_parsedres(url)
+                res.channel = channel
+                res.query = self.query
+                res.total = total
+                res.title = result['Title']
+                res.text = result['Title']
+                res.thumb = result['Thumbnail']['Url']
+                res.lang = self.lang
+                if self.location:
+                    res.lon = lon
+                    res.lat = lat
+                if self.radius:
+                    res.radius = self.radius
+                res.save()
+                latest_date = datetime.now()
+        if 'video' in results:
+            total = results['video']['Total']
+            results = results['video']['Results']
+            count = len(results)
+            for result in results:
+                url = result['PlayUrl']
+                res = self.get_or_create_parsedres(url)
+                res.channel = channel
+                res.query = self.query
+                res.total = total
+                res.title = result['Title']
+                res.text = result['Title']
+                res.source = result['SourceTitle'] if 'SourceTitle' in result else None
+                res.thumb = result['StaticThumbnail']['Url']
+                res.lang = self.lang
+                if self.location:
+                    res.lon = lon
+                    res.lat = lat
+                if self.radius:
+                    res.radius = self.radius
+                res.save()
+                latest_date = datetime.now()
+        return (int(total), count, latest_date)
+    
 class Trend(models.Model):
     """Tracker groups"""
     name = models.CharField('name', max_length=255)
@@ -176,6 +324,9 @@ class ParsedResult(models.Model):
     lon = models.FloatField(blank=True, null=True)
     lat = models.FloatField(blank=True, null=True)
     radius = models.PositiveIntegerField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        get_latest_by = 'date'
 
 # statistics is tree-like with trends as roots,
 #trend1 - tracker1 - pack1 - channel1
