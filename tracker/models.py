@@ -128,9 +128,9 @@ class Tracker(models.Model):
                         (total, count, latest_date) = self.parse_result(result, channel)
                         offset += count
                 elif issubclass(api_class, YqlSearch):
-#                    pass
-                    result = api.fetch(self.query)
-                    print result['yql']
+                    pass
+#                    result = api.fetch(self.query)
+#                    print result['yql']
 #                    count = self.parse_result(result, channel)
 
     def get_or_create_parsedres(self, url):
