@@ -24,7 +24,6 @@ class Channel(models.Model):
     name = models.CharField('name', max_length=255)
     slug = models.SlugField('url-friendly name', unique=True)
     description = models.TextField(blank=True, null=True)
-#    api = models.ForeignKey(SearchApi, verbose_name = 'api')
     api = models.CharField(max_length=255, choices = SEARCH_MODELS)
 
     def __unicode__(self):
@@ -46,12 +45,10 @@ class Tracker(models.Model):
     PENDING = 1
     STARTED = 2
     FINISHED = 3
-#    DISABLED = 4
     STATUSES = (
         (PENDING,'Pending start'),
         (STARTED,'Started'),
         (FINISHED,'Finished'),
-#        (DISABLED,'Disabled'),
     )
     DISTANCE = (
         (5,'5'),
@@ -61,7 +58,7 @@ class Tracker(models.Model):
         (150,'150'),
         (250,'250'),
     )
-    MAXCOUNT = 200
+    MAXCOUNT = 1000
     REQUESTCOUNT = 100
     
     name = models.CharField('name', max_length=255)
@@ -70,10 +67,7 @@ class Tracker(models.Model):
     packs = models.ManyToManyField(Pack, related_name='trackers')
     startdate = models.DateTimeField('start date', blank=True, null=True)
     laststarted = models.DateTimeField('last started date', blank=True, null=True)
-#    queries = models.ManyToManyField(Query
-#    createddate = models.DateTimeField('creation date', auto_now_add=True)
     is_public = models.BooleanField('is public')
-#    muaccounts = models.ManyToManyField(MUAccount, related_name='trackers')
     muaccount = models.ForeignKey(MUAccount, related_name='trackers')
     counter = models.PositiveIntegerField('run counter', default=0)
     description = models.TextField(blank=True, null=True)
@@ -98,9 +92,9 @@ class Tracker(models.Model):
         self.status = self.PENDING
         self.save()
 
-#    def disable(self):
-#        self.status = self.DISABLED
-#        self.save()
+    def start(self):
+        self.status = self.PENDING
+        self.save()
 
     def stop(self):
         self.status = self.FINISHED
@@ -134,15 +128,10 @@ class Tracker(models.Model):
                         (total, count, latest_date) = self.parse_result(result, channel)
                         offset += count
                 elif issubclass(api_class, YqlSearch):
-                    pass
-#                    result = api.fetch(self.query)
+#                    pass
+                    result = api.fetch(self.query)
+                    print result['yql']
 #                    count = self.parse_result(result, channel)
-#                res = RawResult()
-#                res.query = self.query
-#                res.result = json.dumps(result)
-#                res.channel = channel
-#                res.lang = self.lang
-#                res.save()
 
     def get_or_create_parsedres(self, url):
         try:
@@ -278,35 +267,6 @@ class Trend(models.Model):
 
     def __unicode__(self):
         return self.name
-
-class Query(models.Model):
-    """generalized query model"""
-    query = models.CharField('query string', max_length=255)
-    channel = models.ForeignKey(Channel, related_name='queries')
-    createddate = models.DateTimeField('creation date', auto_now_add=True)
-    laststarted = models.DateTimeField('last started date', blank=True, null=True)
-    lang = models.CharField(max_length=5, choices = AdvancedSearch.MARKETS, blank=True, null=True)
-    lon = models.FloatField(blank=True, null=True)
-    lat = models.FloatField(blank=True, null=True)
-    radius = models.PositiveIntegerField(max_length=255, blank=True, null=True)
-#    nextstartdate
-#    skipstarts
-    
-    class Meta:
-        pass
-
-    def __unicode__(self):
-        return '%s in %s' % (self.query, self.channel)
-
-class RawResult(models.Model):
-    query = models.CharField('query string', max_length=255)
-    result = models.TextField()
-    channel = models.ForeignKey(Channel, related_name="raw_results")
-    createddate = models.DateTimeField('creation date', auto_now_add=True)
-    lang = models.CharField(max_length=5, choices = AdvancedSearch.MARKETS, blank=True, null=True)
-    lon = models.FloatField(blank=True, null=True)
-    lat = models.FloatField(blank=True, null=True)
-    radius = models.PositiveIntegerField(max_length=255, blank=True, null=True)
 
 class ParsedResult(models.Model):
     query = models.CharField('query string', max_length=255)
