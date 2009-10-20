@@ -12,5 +12,4 @@ urlpatterns = patterns('',
     url(r'^trend/delete/(?P<trend_id>\d+)/$', 'tracker.views.delete_trend', name='tracker_trend_delete'),
     url(r'^stats/$', 'tracker.views.stats', name='tracker_list_stats'),
     url(r'^stats/(?P<stats_id>\d+)/$', 'tracker.views.stats', name='tracker_list_stats_clicked'),
-    url(r'^search/$', 'django.views.generic.simple.direct_to_template', dict(template='tracker/search.html'), name='tracker_search'),
 )
