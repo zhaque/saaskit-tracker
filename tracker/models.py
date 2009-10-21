@@ -4,9 +4,10 @@ from datetime import datetime, timedelta
 from muaccounts.models import MUAccount
 from django.db.models import Q
 import simplejson as json
+import socket
 
 from livesearch.models import *
-from yql.search import *
+from tracker.search import *
 
 class Channel(models.Model):
     SEARCH_MODELS = (
@@ -18,7 +19,7 @@ class Channel(models.Model):
         ('GoogleSearch','Google Search'),
         ('BingNewsRelated', 'Bing News+Related'),
         ('BingNewsRelatedSpell', 'Bing News+Related+Spell'),
-        ('YqlSearch', 'Yahoo Query Language Search'),
+        ('FriendFeedFeedsYql', 'FriendFeed Feeds table YQL Search'),
     )
     """General class for any data source, like search engines, yql tables and so on"""
     name = models.CharField('name', max_length=255)
@@ -58,7 +59,7 @@ class Tracker(models.Model):
         (150,'150'),
         (250,'250'),
     )
-    MAXCOUNT = 1000
+    MAXCOUNT = 200
     REQUESTCOUNT = 100
     
     name = models.CharField('name', max_length=255)
@@ -110,28 +111,28 @@ class Tracker(models.Model):
                 offset = 0
                 if issubclass(api_class, PipeSearch):
                     api.init_options()
-                    api.set_count(count)
-                    api.set_offset(offset)
                     if self.lang:
                         api.set_market(self.lang)
-                    try:
-                        latest_result_date = ParsedResult.objects.filter(channel=channel, query=self.query).latest().date
-                    except ObjectDoesNotExist:
+                api.set_count(count)
+                api.set_offset(offset)
+                try:
+                    latest_result_date = ParsedResult.objects.filter(channel=channel, query=self.query).latest().date
+                    if not latest_result_date:
                         latest_result_date = datetime.now() - timedelta(days=365)
-                    latest_date = datetime.now()
-                    while self.MAXCOUNT > offset:
-                        if offset >= total or latest_date < latest_result_date:
-                            break
-                        api.set_count(count)
-                        api.set_offset(offset)
+                except ObjectDoesNotExist:
+                    latest_result_date = datetime.now() - timedelta(days=365)
+                latest_date = datetime.now()
+                while self.MAXCOUNT > offset:
+                    if offset >= total or latest_date < latest_result_date:
+                        break
+                    api.set_count(count)
+                    api.set_offset(offset)
+                    try:
                         result = api.fetch(self.query)
                         (total, count, latest_date) = self.parse_result(result, channel)
                         offset += count
-                elif issubclass(api_class, YqlSearch):
-                    pass
-#                    result = api.fetch(self.query)
-#                    print result['yql']
-#                    count = self.parse_result(result, channel)
+                    except socket.timeout:
+                        pass
 
     def get_or_create_parsedres(self, url):
         try:
@@ -256,6 +257,29 @@ class Tracker(models.Model):
                     res.radius = self.radius
                 res.save()
                 latest_date = datetime.now()
+        if 'friendfeed.feeds' in results:
+            total = self.MAXCOUNT
+            results = results['friendfeed.feeds']
+            count = len(results)
+            for result in results:
+                url = result['link']
+                res = self.get_or_create_parsedres(url)
+                res.channel = channel
+                res.query = self.query
+                res.total = total
+                res.title = result['title']
+                res.text = result['title']
+                res.date = datetime.strptime(result['updated'], '%Y-%m-%dT%H:%M:%SZ')
+                res.source = result['user']['name'] if 'user' in result else None
+                res.thumb = result['service']['iconUrl'] if 'service' in result else None
+                res.lang = self.lang
+                if self.location:
+                    res.lon = lon
+                    res.lat = lat
+                if self.radius:
+                    res.radius = self.radius
+                res.save()
+                latest_date = res.date
         return (int(total), count, latest_date)
     
 class Trend(models.Model):

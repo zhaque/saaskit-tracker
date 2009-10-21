@@ -13,9 +13,9 @@
 - model: tracker.Channel
   pk: 3
   fields:
-    name: Yql
-    slug: yql
-    api: YqlSearch
+    name: FriendFeedFeedsYql
+    slug: friendfeeds-feed
+    api: FriendFeedFeedsYql
 - model: tracker.Channel
   pk: 4
   fields:
@@ -86,9 +86,9 @@
 - model: tracker.Tracker
   pk: 3
   fields:
-    name: Django from bing via yql
+    name: Django from friendfeed.feeds via yql
     status: 1
-    query: select * from microsoft.bing.web where query='django'
+    query: django
     packs: [4]
     is_public: 0
     muaccount: 2
@@ -97,9 +97,9 @@
 - model: tracker.Tracker
   pk: 4
   fields:
-    name: Django from bing via yql 2
+    name: Django from friendfeed.feeds via yql 2
     status: 1
-    query: select * from microsoft.bing.web where query='django'
+    query: django
     packs: [4]
     is_public: 0
     muaccount: 1
