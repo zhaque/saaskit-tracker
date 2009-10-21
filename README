@@ -1,5 +1,75 @@
-django-collections
+django-trendtracker
 ==================
 Channels/Groups/Tracker i.e. general collection support.
 
-TODO: investigate with south ignores unique=True for url field in ParsedResult model.
+
+New django-south migration
+--------------------------
+
+Any model/field changes lead to database update. In case of django-south you need to make following steps to make things work.
+1. create new migration (don't forget to save your models.py file)
+    $ python manage.py startmigration tracker <new migration name here> --auto
+2. open new migration in your preferred editor and add 'from muaccounts.models import *' to includes section.
+3. migrate you database
+    $ python manage.py migrate tracker
+
+
+Statistics
+----------
+
+Statistics models live in models.py.
+The core class here is Statistics, which is a storage for calculated stats data. 
+StatisticMethods is a storage of base stats methods.
+Any other stats class for Trends/Trackers/Packs/Channels is a child of StatisticMethods class and has on-to-one relationship with Statistics class.
+
+Since Trend class is on the top of the structure, whole statistics has a tree-like view:
+
+trend1 - tracker1 - pack1 - channel1
+      \           \       \ channel2
+       \           \pack2 - channel1
+        \                 \ channel2
+         tracker2 - pack1 - channel1
+                  \       \ channel2
+                   \pack2 - channel1
+                          \ channel2
+
+
+Adding more statistics
+----------------------
+
+First of all, you need storage for you calculated stats data. So you add new field to Statistics model.
+Say you want to calculate daily change of total results provided by channels, i.e. today Bing Web found 1.5 million mentions, but yesterday it gave 2 million.
+In this case you need to add daily_total_results to Statistics model. Please always do such fields nullable to avoid errors.
+
+    daily_total_results = models.IntegerField(blank=True, null=True)
+
+Second step is writing calculation method. Add count_daily_total_results method to StatisticMethods model and its call to StatisticMethods.count_stats method before "self.stats.save()" line.
+
+    def count_daily_total_results(self):
+        pass
+    def count_stats(self):
+        ...
+        self.daily_total_results = self.count_daily_total_results()
+        self.stats.save()
+
+If calculation algorithm is common for trends/trackers/packs/channels it's better to implement your count function right in the StatisticMethods class. In opposite case you need to override count_daily_total_results function in all or some of TrendStatistics, TrackerStatistics, PackStatistics, ChannelStatistics classes.
+
+Now you need to update your database:
+ - in general case you should remove Statistics model's table and run 'python manage.py syncdb' 
+ - in case of using django-south you should create new migration and then run 'python manage.py migrate tracker'
+
+Since this moment every run of 'python manage.py runtrackers stats' will calculate your new statistics.
+
+One more thing here. 
+You surely want to see those calculated values at /stats/ page, templates/stats.html is responsible for this. So open it in your preferable editor and find following block:
+    {% if cur_stats %}
+    ...
+    {% endif %}
+Place you new statistics values inside this block. For example:
+    {% if cur_stats %}
+    ...
+    <p>Daily total results: {{ cur_stats.daily_total_results }}</p>
+    {% endif %}
+
+Congratulations, you should see your new statistics at /stats/ page
+
