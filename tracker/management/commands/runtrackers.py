@@ -68,6 +68,7 @@ class Command(LabelCommand):
                             channel_stats = ChannelStatistics()
                             channel_stats.channel = channel
                             channel_stats.packstats = pack_stats
+                            channel_stats.save()
                         channel_stats.count_stats()
                         channel_stats.save()
                     pack_stats.count_stats()

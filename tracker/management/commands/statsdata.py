@@ -22,8 +22,6 @@ class Command(NoArgsCommand):
         for result in results:
             if i > self.DAYS:
               i=0
-#            print '%d' % i
             result.date = now - timedelta(days=i)
             result.save()
-#            print '%s' % result.date
             i += 1

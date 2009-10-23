@@ -322,34 +322,11 @@ class ParsedResult(models.Model):
 #                   \pack2 - channel1
 #                          \ channel2
 
-class Statistics(models.Model):
-    daily_change = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    total_24hours = models.PositiveIntegerField(blank=True, null=True)
-    total_7days = models.PositiveIntegerField(blank=True, null=True)
-    daily_average = models.IntegerField(blank=True, null=True)
-    most_active_source = models.CharField(max_length=255, blank=True, null=True)
+class BaseStatistics(models.Model):
+    STATS_LENGTH = 7
+    STATS_INTERVAL = 24
+    created_date = models.DateTimeField('creation date', auto_now_add=True)
 
-    @property
-    def owner(self):
-      try:
-        return self.trend
-      except ObjectDoesNotExist:
-        try:
-          return self.tracker
-        except ObjectDoesNotExist:
-          try:
-            return self.pack
-          except ObjectDoesNotExist:
-            try:
-              return self.channel
-            except ObjectDoesNotExist:
-              pass
-      return None
-    
-    def __unicode__(self):
-      return '%s' % self.owner
-
-class StatisticMethods:
     def get_tracker(self):
         pass
 
@@ -357,34 +334,42 @@ class StatisticMethods:
         pass
 
     def count_stats(self):
-        if not self.stats:
-            stats = Statistics()
-            stats.save()
-            self.stats = stats
-        self.stats.daily_change = self.count_daily_change()
-        self.stats.total_24hours = self.count_total_24hours()
-        self.stats.total_7days = self.count_total_7days()
-        self.stats.daily_average = self.count_daily_average()
-        self.stats.save()
+        self.stats.all().delete()
+        now = datetime.now()
+        for i in range (1, self.STATS_LENGTH+1):
+            self.count_stats_with_interval(now, i * self.STATS_INTERVAL)
 
-    def count_daily_change(self):
-        today = self.count_total_24hours()
-        yesterday = self.count_total_mentions(datetime.now()-timedelta(days=2), datetime.now()-timedelta(days=1))
+    def count_stats_with_interval(self, now, interval):
+        stats = Statistics()
+        stats.owner = self
+        stats.interval = interval
+        stats.save()
+
+        date = now - timedelta(hours = interval)
+        stats.daily_change = self.count_daily_change(date)
+        stats.total_24hours = self.count_total_24hours(date)
+        stats.total_7days = self.count_total_7days(date)
+        stats.daily_average = self.count_daily_average(date)
+        stats.save()
+
+    def count_daily_change(self, date):
+        today = self.count_total_24hours(date)
+        yesterday = self.count_total_mentions(date-timedelta(days=2), date-timedelta(days=1))
         if 0 == yesterday:
             return None
         return '%s' % (float(today-yesterday)/yesterday*100)
         
-    def count_daily_average(self):
+    def count_daily_average(self, date):
         start = self.get_tracker().startdate
-        delta = (datetime.now() - start).days + 1
-        total = self.count_total_mentions(start, datetime.now())
+        delta = (date - start).days + 1
+        total = self.count_total_mentions(start, date)
         return total/delta
         
-    def count_total_7days(self):
-        return self.count_total_mentions(datetime.now() - timedelta(days=7), datetime.now())
+    def count_total_7days(self, date):
+        return self.count_total_mentions(date - timedelta(days=7), date)
 
-    def count_total_24hours(self):
-        return self.count_total_mentions(datetime.now() - timedelta(days=1), datetime.now())
+    def count_total_24hours(self, date):
+        return self.count_total_mentions(date - timedelta(days=1), date)
 
     def count_total_mentions(self, startdate, finishdate):
         total = 0
@@ -393,10 +378,40 @@ class StatisticMethods:
     def get_latest(self):
         pass
 
-class TrendStatistics(models.Model, StatisticMethods):
-    created_date = models.DateTimeField('creation date', auto_now_add=True)
+class Statistics(models.Model):
+    owner = models.ForeignKey(BaseStatistics, related_name='stats')
+    interval = models.PositiveIntegerField()
+    daily_change = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    total_24hours = models.PositiveIntegerField(blank=True, null=True)
+    total_7days = models.PositiveIntegerField(blank=True, null=True)
+    daily_average = models.IntegerField(blank=True, null=True)
+    most_active_source = models.CharField(max_length=255, blank=True, null=True)
+
+#    @property
+#    def owner(self):
+#      try:
+#        return self.trend
+#      except ObjectDoesNotExist:
+#        try:
+#          return self.tracker
+#        except ObjectDoesNotExist:
+#          try:
+#            return self.pack
+#          except ObjectDoesNotExist:
+#            try:
+#              return self.channel
+#            except ObjectDoesNotExist:
+#              pass
+#      return None
+
+    class Meta:
+        unique_together = ('owner', 'interval')
+    
+    def __unicode__(self):
+      return '%s' % self.owner
+
+class TrendStatistics(BaseStatistics):
     trend = models.OneToOneField(Trend)
-    stats = models.OneToOneField(Statistics, blank=True, null=True, related_name='trend')
 
     class Meta:
         verbose_name = 'trend statistics'
@@ -415,7 +430,7 @@ class TrendStatistics(models.Model, StatisticMethods):
                 startdate = date
         return startdate
 
-    def count_daily_average(self):
+    def count_daily_average(self, date):
         return None
 
     def count_total_mentions(self, startdate, finishdate):
@@ -439,10 +454,8 @@ class TrendStatistics(models.Model, StatisticMethods):
         latest = ParsedResult.objects.filter(qs).order_by('-date')[:20]
         return latest
 
-class TrackerStatistics(models.Model, StatisticMethods):
-    created_date = models.DateTimeField('creation date', auto_now_add=True)
+class TrackerStatistics(BaseStatistics):
     tracker = models.ForeignKey(Tracker, related_name='stats')
-    stats = models.OneToOneField(Statistics, blank=True, null=True, related_name='tracker')
     trendstats = models.ForeignKey(TrendStatistics, related_name='trackerstats')
 
     class Meta:
@@ -473,10 +486,8 @@ class TrackerStatistics(models.Model, StatisticMethods):
         latest = ParsedResult.objects.filter(query=self.get_tracker().query, channel__in=channels).order_by('-date')[:20]
         return latest
         
-class PackStatistics(models.Model, StatisticMethods):
-    created_date = models.DateTimeField('creation date', auto_now_add=True)
+class PackStatistics(BaseStatistics):
     pack = models.ForeignKey(Pack, related_name='stats')
-    stats = models.OneToOneField(Statistics, blank=True, null=True, related_name='pack')
     trackerstats = models.ForeignKey(TrackerStatistics, related_name='packstats')
 
     class Meta:
@@ -504,10 +515,8 @@ class PackStatistics(models.Model, StatisticMethods):
         latest = ParsedResult.objects.filter(query=self.get_tracker().query, channel__in=channels).order_by('-date')[:20]
         return latest
 
-class ChannelStatistics(models.Model, StatisticMethods):
-    created_date = models.DateTimeField('creation date', auto_now_add=True)
+class ChannelStatistics(BaseStatistics):
     channel = models.ForeignKey(Channel, related_name='stats')
-    stats = models.OneToOneField(Statistics, blank=True, null=True, related_name='channel')
     packstats = models.ForeignKey(PackStatistics, related_name='channelstats')
 
     class Meta:
