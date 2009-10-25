@@ -70,13 +70,9 @@ class Command(LabelCommand):
                             channel_stats.packstats = pack_stats
                             channel_stats.save()
                         channel_stats.count_stats()
-                        channel_stats.save()
                     pack_stats.count_stats()
-                    pack_stats.save()
                 tracker_stats.count_stats()
-                tracker_stats.save()
             trend_stats.count_stats()
-            trend_stats.save()
 
     def sorl(self):
         results = ParsedResult.objects.all()
