@@ -152,8 +152,11 @@ class Tracker(models.Model):
         latest_date = None
         if 'twitter' in results:
             results = results['twitter']
-            total = self.MAXCOUNT
             count = len(results)
+            if count:
+                total = self.MAXCOUNT
+            else:
+                total = 0
             for result in results:
                 url = 'http://twitter.com/%s/statuses/%s' % (result['from_user'], result['id'])
                 res = self.get_or_create_parsedres(url)
@@ -261,9 +264,12 @@ class Tracker(models.Model):
                 res.save()
                 latest_date = datetime.now()
         if 'friendfeed.feeds' in results:
-            total = self.MAXCOUNT
             results = results['friendfeed.feeds']
             count = len(results)
+            if count:
+                total = self.MAXCOUNT
+            else:
+                total = 0
             for result in results:
                 url = result['link']
                 res = self.get_or_create_parsedres(url)
