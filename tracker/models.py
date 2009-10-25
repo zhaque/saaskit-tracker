@@ -82,8 +82,8 @@ class Tracker(models.Model):
     def run(self):
         if self.PENDING == self.status:
             self.status = self.STARTED
-            self.startdate = datetime.now()
-        elif self.FINISHED == self.status:
+            if not self.startdate:
+                self.startdate = datetime.now()
             self.laststarted = datetime.now()
         else:
             return
