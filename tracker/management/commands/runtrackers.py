@@ -1,7 +1,8 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import CommandError
 from django.core.management.base import LabelCommand
-from tracker.models import Trend, Tracker, Channel, ParsedResult, TrendStatistics, TrackerStatistics, PackStatistics, ChannelStatistics, Statistics
+from tracker.models import Tracker, Trend, Pack, Channel, ParsedResult
+from stats.models import BaseStatistics, Statistics, TrendStatistics, TrackerStatistics, PackStatistics, ChannelStatistics
 from livesearch.models import *
 from yql.search import *
 import simplejson as json

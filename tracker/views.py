@@ -5,7 +5,7 @@ from django.views.generic.simple import direct_to_template
 from django.views.generic.create_update import update_object, delete_object
 from django.http import HttpResponseRedirect
 from django.http import Http404
-from tracker.models import Tracker, Trend, Pack, TrendStatistics, TrackerStatistics, PackStatistics, ChannelStatistics, Statistics, ParsedResult
+from tracker.models import Tracker, Trend, Pack
 from tracker.forms import TrackerForm, TrendForm
 from datetime import datetime, timedelta
 from django.template.defaultfilters import slugify
