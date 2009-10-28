@@ -72,6 +72,8 @@
     muaccount: 2
     counter: 0
     lang: en-US
+    location: -0.127144 51.506325
+    radius: 150
 - model: tracker.Tracker
   pk: 2
   fields:
@@ -83,6 +85,8 @@
     muaccount: 2
     counter: 0
     lang: en-US
+    location: -0.127144 51.506325
+    radius: 150
 - model: tracker.Tracker
   pk: 3
   fields:
@@ -94,6 +98,8 @@
     muaccount: 2
     counter: 0
     lang: en-US
+    location: -118.245319 34.05349
+    radius: 10
 - model: tracker.Tracker
   pk: 4
   fields:
@@ -105,6 +111,8 @@
     muaccount: 1
     counter: 0
     lang: en-US
+    location: -118.245319 34.05349
+    radius: 10
 - model: tracker.Tracker
   pk: 5
   fields:
@@ -116,6 +124,8 @@
     muaccount: 3
     counter: 0
     lang: en-US
+    location: 39.718048 47.22567
+    radius: 50
 - model: tracker.Trend
   pk: 1
   fields:
