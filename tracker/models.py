@@ -74,8 +74,8 @@ class Tracker(models.Model):
     counter = models.PositiveIntegerField('run counter', default=0)
     description = models.TextField(blank=True, null=True)
     lang = models.CharField(max_length=5, choices = AdvancedSearch.MARKETS, default='en-US')
-    location = models.CharField(max_length=255, blank=True, null=True)
-    radius = models.PositiveIntegerField('Radius (miles)', max_length=255, blank=True, null=True, choices = DISTANCE)
+    location = models.CharField(max_length=255, blank=True, null=True, default='San Francisco')
+    radius = models.PositiveIntegerField('Radius (miles)', max_length=255, blank=True, null=True, choices = DISTANCE, default=250)
 
     def __unicode__(self):
         return self.name
