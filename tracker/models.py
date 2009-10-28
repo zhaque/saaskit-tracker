@@ -114,6 +114,12 @@ class Tracker(models.Model):
                     api.init_options()
                     if self.lang:
                         api.set_market(self.lang)
+                if self.location:
+                    (lon,lat) = self.location.split()
+                    api.set_longitude(lon)
+                    api.set_latitude(lat)
+                    if self.radius:
+                        api.set_radius(self.radius)
                 api.set_count(count)
                 api.set_offset(offset)
                 try:

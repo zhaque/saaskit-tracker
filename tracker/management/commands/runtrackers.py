@@ -111,9 +111,9 @@ class Command(LabelCommand):
             if res.purgedate:
                 map.update({'purgedate': res.purgedate})
             if res.lon:
-                map.update({'lon': res.lon})
+                map.update({'longitude': res.lon})
             if res.lat:
-                map.update({'lat': res.lat})
+                map.update({'latitude': res.lat})
             if res.radius:
                 map.update({'radius': res.radius})
             docs.append(map)
