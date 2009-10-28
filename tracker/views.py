@@ -71,7 +71,6 @@ def advanced_query(request, tracker_id):
     context_vars = dict()
     values = dict()
     context_vars['caption'] = 'Refine query'
-    context_vars['langs'] = AdvancedSearch.MARKETS
     tracker = Tracker.objects.get(id=tracker_id)
     has_twitter = False
     for pack in tracker.packs.all():
@@ -82,7 +81,6 @@ def advanced_query(request, tracker_id):
                 return HttpResponseRedirect(reverse('tracker_index'))
     context_vars['pack_has_twitter'] = has_twitter
     values['ands'] = tracker.query
-    values['lang'] = tracker.lang
     
     if request.method == 'POST':
         values['ands'] = request.POST.get('ands', '')
@@ -90,7 +88,6 @@ def advanced_query(request, tracker_id):
         values['ors'] = request.POST.get('ors', '')
         values['nots'] = request.POST.get('nots', '')
         values['url'] = request.POST.get('url', '')
-        values['lang'] = request.POST.get('lang', '')
         values['from'] = request.POST.get('from', '')
         values['to'] = request.POST.get('to', '')
         values['ref'] = request.POST.get('ref', '')
@@ -134,7 +131,6 @@ def advanced_query(request, tracker_id):
             query += ' filter:%s' % values['filter']
 
         tracker.query = query
-        tracker.lang = values['lang']
         tracker.save()
         return HttpResponseRedirect(reverse('tracker_index'))
     context_vars['values'] = values
