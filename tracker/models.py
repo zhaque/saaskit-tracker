@@ -195,7 +195,7 @@ class Tracker(models.Model):
                 res.total = total
                 res.title = result['Title'] 
                 res.text = result['Description'] if 'Description' in result else None
-                res.date = datetime.strptime(result['DateTime'], '%Y-%m-%dT%H:%M:%SZ')
+                res.date = datetime.strptime(result['DateTime'], '%Y-%m-%dT%H:%M:%SZ') if 'DateTime' in result else datetime.now()
                 res.lang = self.lang
                 if self.location:
                     res.lon = lon
@@ -216,7 +216,7 @@ class Tracker(models.Model):
                 res.total = total
                 res.title = result['Title'] 
                 res.text = result['Snippet']
-                res.date = datetime.strptime(result['Date'], '%Y-%m-%dT%H:%M:%SZ')
+                res.date = datetime.strptime(result['Date'], '%Y-%m-%dT%H:%M:%SZ') if 'Date' in result else datetime.now()
                 res.source = result['Source'] 
                 res.lang = self.lang
                 if self.location:
@@ -238,6 +238,7 @@ class Tracker(models.Model):
                 res.total = total
                 res.title = result['Title']
                 res.text = result['Title']
+                res.date = datetime.now()
                 res.thumb = result['Thumbnail']['Url']
                 res.lang = self.lang
                 if self.location:
@@ -259,6 +260,7 @@ class Tracker(models.Model):
                 res.total = total
                 res.title = result['Title']
                 res.text = result['Title']
+                res.date = datetime.now()
                 res.source = result['SourceTitle'] if 'SourceTitle' in result else None
                 res.thumb = result['StaticThumbnail']['Url']
                 res.lang = self.lang
@@ -277,7 +279,7 @@ class Tracker(models.Model):
             else:
                 total = 0
             for result in results:
-                url = result['link']
+                url = result['link'][:200]
                 res = self.get_or_create_parsedres(url)
                 res.channel = channel
                 res.query = self.query
