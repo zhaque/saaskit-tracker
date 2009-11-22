@@ -3,6 +3,7 @@ from setuptools import setup, find_packages
 install_requires = [
         'setuptools',
         'Django',
+        'pysolr',
 ]
  
 setup(name="saaskit-tracker",
