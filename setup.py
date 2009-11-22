@@ -5,6 +5,11 @@ install_requires = [
         'Django',
         'pysolr',
 ]
+
+dependency_links = [
+        'http://pypi.saaskit.org/pysolr/',
+        'http://dist.repoze.org',
+]
  
 setup(name="saaskit-tracker",
            version="0.1",
@@ -17,5 +22,5 @@ setup(name="saaskit-tracker",
            entry_points="""
            # -*- Entry points: -*-
            """,
-           dependency_links = ['http://dist.repoze.org',],
+           dependency_links = dependency_links,
 )
